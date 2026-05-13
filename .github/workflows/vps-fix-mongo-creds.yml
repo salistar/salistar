@@ -1,0 +1,87 @@
+name: vps-fix-mongo-creds
+
+# The API rebuild via vps-fix-404s replaced the running API with a new image
+# whose MONGODB_URI pulls credentials from ~/apps/sallycards-backoffice/.env.
+# Those creds DON'T match the persisted mongo volume.
+#
+# Strategy: read mongo-express's env (it's been healthy for 2 days, so its
+# creds are correct), patch the backoffice .env to match, restart api.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          capture_stdout: true
+          script: |
+            set +e
+            echo "===== A. mongo-express env (correct creds) ====="
+            docker inspect sallycards-mongo-express --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -i -E "MONGO|ME_CONFIG"
+            echo ""
+            echo "===== B. Current backoffice .env ====="
+            if [ -f ~/apps/sallycards-backoffice/.env ]; then
+              cat ~/apps/sallycards-backoffice/.env | grep -i -E "MONGO|REDIS|JWT" | sed 's/=.*$/=***REDACTED***/'
+            else
+              echo "(no .env)"
+            fi
+            echo ""
+            echo "===== C. Test mongo auth with mongo-express creds ====="
+            # Extract creds from mongo-express
+            ME_URL=$(docker inspect sallycards-mongo-express --format '{{range .Config.Env}}{{println .}}{{end}}' | grep "ME_CONFIG_MONGODB_URL=" | sed 's/ME_CONFIG_MONGODB_URL=//')
+            echo "  mongo-express URL pattern: ${ME_URL%@*}@..."
+            # Parse out user:pass
+            ME_USER=$(echo "$ME_URL" | sed -E 's|mongodb://([^:]+):.*|\1|')
+            ME_PASS=$(echo "$ME_URL" | sed -E 's|mongodb://[^:]+:([^@]+)@.*|\1|')
+            echo "  extracted user: $ME_USER"
+            echo "  testing direct mongosh login..."
+            docker exec sallycards-mongo mongosh -u "$ME_USER" -p "$ME_PASS" --authenticationDatabase admin --eval "db.adminCommand('ping')" 2>&1 | tail -5
+            echo ""
+            echo "===== D. Patch backoffice .env ====="
+            cd ~/apps/sallycards-backoffice
+            if [ -f .env ]; then
+              cp .env .env.bak.$(date +%s)
+              # Replace MONGO_USER and MONGO_PASSWORD if present
+              sed -i "s|^MONGO_USER=.*|MONGO_USER=$ME_USER|" .env
+              if grep -q "^MONGO_PASSWORD=" .env; then
+                sed -i "s|^MONGO_PASSWORD=.*|MONGO_PASSWORD=$ME_PASS|" .env
+              else
+                echo "MONGO_PASSWORD=$ME_PASS" >> .env
+              fi
+              echo "  patched. New (redacted) values:"
+              grep -E "^MONGO_(USER|PASSWORD)=" .env | sed 's/=.*/=***/'
+            else
+              echo "MONGO_USER=$ME_USER" > .env
+              echo "MONGO_PASSWORD=$ME_PASS" >> .env
+              echo "MONGO_DB=sallycards" >> .env
+              echo "NODE_ENV=production" >> .env
+              echo "  .env created with mongo creds"
+            fi
+            echo ""
+            echo "===== E. Recreate API container with new env ====="
+            docker compose up -d --force-recreate sallycards-api 2>&1 | tail -10
+            echo ""
+            echo "===== F. Wait for health ====="
+            for i in $(seq 1 12); do
+              code=$(curl -sS -o /dev/null -m 3 -w "%{http_code}" http://localhost:3000/api/v1/health 2>/dev/null || echo "000")
+              echo "  [$i/12] localhost:3000/api/v1/health -> $code"
+              if [ "$code" = "200" ]; then
+                break
+              fi
+              sleep 5
+            done
+            echo ""
+            echo "===== G. New infra-monitoring endpoint ====="
+            curl -sS -m 5 -w "\nHTTP: %{http_code}\n" http://localhost:3000/api/v1/infra-monitoring/heartbeat/latest 2>&1 | head -10
+            echo ""
+            echo "===== H. Swagger endpoint ====="
+            curl -sS -o /dev/null -m 5 -w "localhost:3000/api/docs -> %{http_code}\n" http://localhost:3000/api/docs
+            echo ""
+            echo "===== I. Final container state ====="
+            docker ps --format 'table {{.Names}}\t{{.Status}}' | head -15
