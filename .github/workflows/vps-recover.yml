@@ -1,0 +1,90 @@
+name: vps-recover
+
+# Emergency recovery: bring the API back up after vps-fix-404s broke it.
+# Strategy: do nothing destructive — just list state and restart whatever
+# is running. Capture stdout so we can see what's actually there.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  recover:
+    name: Restart API + diagnose
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH diagnose + restart
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          capture_stdout: true
+          script: |
+            set +e
+            echo "=========================================="
+            echo "A. Containers state"
+            echo "=========================================="
+            docker ps -a --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' 2>&1 | head -40
+            echo ""
+            echo "=========================================="
+            echo "B. ~/apps/ tree"
+            echo "=========================================="
+            ls -la ~/apps/ 2>&1 || echo "(no ~/apps)"
+            echo ""
+            echo "=========================================="
+            echo "C. All docker-compose files"
+            echo "=========================================="
+            find ~ -maxdepth 5 -name "docker-compose*.yml" 2>/dev/null
+            find /opt -maxdepth 4 -name "docker-compose*.yml" 2>/dev/null
+            echo ""
+            echo "=========================================="
+            echo "D. API container logs (last 50 lines)"
+            echo "=========================================="
+            API_NAME=$(docker ps -a --format '{{.Names}}' | grep -i -E 'api|sallycards' | head -1)
+            echo "Detected API container name: $API_NAME"
+            if [ -n "$API_NAME" ]; then
+              docker logs --tail 50 "$API_NAME" 2>&1
+            fi
+            echo ""
+            echo "=========================================="
+            echo "E. Restart API container (no rebuild)"
+            echo "=========================================="
+            if [ -n "$API_NAME" ]; then
+              docker restart "$API_NAME" 2>&1
+              sleep 5
+              docker ps --format 'table {{.Names}}\t{{.Status}}' | grep "$API_NAME"
+            fi
+            echo ""
+            echo "=========================================="
+            echo "F. Cloudflared status"
+            echo "=========================================="
+            sudo systemctl status cloudflared --no-pager 2>&1 | head -15 || docker ps --format '{{.Names}}\t{{.Status}}' | grep -i cloud
+            echo ""
+            echo "=========================================="
+            echo "G. Cloudflared config (current)"
+            echo "=========================================="
+            for c in /etc/cloudflared/config.yml /root/.cloudflared/config.yml ~/.cloudflared/config.yml ~/cloudflared/config.yml; do
+              if sudo test -f "$c" 2>/dev/null; then
+                echo "--- $c ---"
+                sudo cat "$c"
+                break
+              elif test -f "$c"; then
+                echo "--- $c ---"
+                cat "$c"
+                break
+              fi
+            done
+            echo ""
+            echo "=========================================="
+            echo "H. Final URL probe (from VPS local)"
+            echo "=========================================="
+            for url in \
+              "http://localhost:3000/api/v1/health" \
+              "http://localhost:3001/health" \
+              "http://localhost:4000/" \
+              "http://localhost:4001/" \
+              "http://localhost:4002/" \
+            ; do
+              code=$(curl -sS -o /dev/null -m 3 -w "%{http_code}" "$url" 2>/dev/null || echo "000")
+              echo "  $code  $url"
+            done
