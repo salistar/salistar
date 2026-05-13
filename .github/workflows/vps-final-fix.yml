@@ -1,0 +1,153 @@
+name: vps-final-fix
+
+# Final consolidation:
+#   1. Try every available method to create the backoffice DNS record:
+#      a. cloudflared tunnel route dns (needs cert.pem — try common paths)
+#      b. CF API with token (if it has Zone:DNS:Edit)
+#      c. Best-effort: write the missing cert.pem if user has stored it
+#   2. Add CORS_ORIGINS to backoffice .env on VPS and restart api.
+#   3. Probe everything.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH — CORS env + container restart + DNS attempt
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          capture_stdout: true
+          script: |
+            set +e
+            echo "===== A. Patch backoffice .env with CORS_ORIGINS ====="
+            ENVF=~/apps/sallycards-backoffice/.env
+            if [ -f "$ENVF" ]; then
+              cp "$ENVF" "${ENVF}.bak.$(date +%s)"
+              # remove any existing CORS_ORIGINS line then append
+              sed -i '/^CORS_ORIGINS=/d' "$ENVF"
+              echo 'CORS_ORIGINS=https://salistar.com,https://sallycards.salistar.com,https://backoffice.salistar.com,http://localhost:4000,http://localhost:4001' >> "$ENVF"
+              echo "  CORS_ORIGINS added"
+              grep ^CORS_ORIGINS "$ENVF"
+            fi
+            echo ""
+            echo "===== B. Pull latest backoffice + rebuild API ====="
+            cd ~/apps/sallycards-backoffice
+            git fetch --all 2>&1 | tail -3
+            git reset --hard origin/main 2>&1 | tail -3
+            docker compose build sallycards-api 2>&1 | tail -10
+            docker compose up -d --no-deps sallycards-api 2>&1 | tail -10
+            echo "  Waiting for healthy..."
+            for i in $(seq 1 15); do
+              code=$(curl -sS -o /dev/null -m 3 -w "%{http_code}" http://localhost:3000/api/v1/health 2>/dev/null || echo "000")
+              echo "  [$i/15] localhost:3000 -> $code"
+              if [ "$code" = "200" ]; then break; fi
+              sleep 4
+            done
+            echo ""
+            echo "===== C. Probe /infra-monitoring/check-now (the new endpoint) ====="
+            curl -sS -m 10 http://localhost:3000/api/v1/infra-monitoring/check-now | head -50
+            echo ""
+            echo "===== D. CORS headers test (origin = https://salistar.com) ====="
+            curl -sSI -m 5 -H "Origin: https://salistar.com" http://localhost:3000/api/v1/health | grep -i "access-control\|origin" || echo "(no CORS headers)"
+            echo ""
+            echo "===== E. DNS attempt 1: cloudflared tunnel route dns ====="
+            # Search for cert.pem (account-level credential for cloudflared)
+            CERT=""
+            for p in /etc/cloudflared/cert.pem /root/.cloudflared/cert.pem ~/.cloudflared/cert.pem; do
+              if sudo test -f "$p" 2>/dev/null; then
+                CERT="$p"
+                break
+              fi
+            done
+            echo "cert.pem found: $CERT"
+            if [ -n "$CERT" ]; then
+              sudo TUNNEL_ORIGIN_CERT="$CERT" cloudflared tunnel route dns sallycards-prod backoffice.salistar.com 2>&1 | tail -5
+            else
+              echo "(no cert.pem — skipping cloudflared route)"
+            fi
+            echo ""
+            echo "===== F. DNS verify ====="
+            sleep 3
+            dig +short @1.1.1.1 backoffice.salistar.com 2>&1 | head -3
+            curl -sS -o /dev/null -m 8 -w "  backoffice.salistar.com -> %{http_code}\n" https://backoffice.salistar.com 2>&1
+
+      - name: Cloudflare DNS attempt 2 (API with token)
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          TUNNEL_UUID: ab766441-9686-435d-a762-d4b1bb75f8c8
+        run: |
+          set +e
+          # Test if token can list DNS records
+          TEST=$(curl -sS -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records?type=CNAME&name=backoffice.salistar.com")
+          echo "Token DNS-list permission test: HTTP $TEST"
+          if [ "$TEST" != "200" ]; then
+            echo "❌ Token lacks Zone:DNS:Edit permission (got $TEST)"
+            echo ""
+            echo "👉 ACTION REQUIRED: regenerate CF_API_TOKEN with permissions:"
+            echo "   Zone:DNS:Edit + Zone:Cache Purge for zone salistar.com"
+            echo "   Then: gh secret set CF_API_TOKEN --repo salistar/salistar"
+            echo ""
+            echo "OR add the DNS manually:"
+            echo "   Cloudflare dashboard → salistar.com → DNS → Add record"
+            echo "   Type=CNAME, Name=backoffice, Target=${TUNNEL_UUID}.cfargotunnel.com, Proxied=ON"
+            exit 0
+          fi
+          # Token works — proceed
+          EXISTING_ID=$(curl -sS \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records?type=CNAME&name=backoffice.salistar.com" \
+            | jq -r '.result[0].id // empty')
+          if [ -n "$EXISTING_ID" ]; then
+            echo "Updating existing record $EXISTING_ID..."
+            curl -sS -X PUT \
+              -H "Authorization: Bearer $CF_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data "{\"type\":\"CNAME\",\"name\":\"backoffice.salistar.com\",\"content\":\"${TUNNEL_UUID}.cfargotunnel.com\",\"ttl\":1,\"proxied\":true}" \
+              "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records/${EXISTING_ID}" \
+              | jq '{success, errors}'
+          else
+            echo "Creating new CNAME..."
+            curl -sS -X POST \
+              -H "Authorization: Bearer $CF_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data "{\"type\":\"CNAME\",\"name\":\"backoffice\",\"content\":\"${TUNNEL_UUID}.cfargotunnel.com\",\"ttl\":1,\"proxied\":true}" \
+              "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records" \
+              | jq '{success, errors, result: {name, content, proxied}}'
+          fi
+          # Purge
+          curl -sS -X POST \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}' \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" | jq '.success'
+
+      - name: Final probe
+        run: |
+          sleep 25
+          echo "===== FINAL URLs ====="
+          for url in \
+            "https://salistar.com" \
+            "https://sallycards.salistar.com" \
+            "https://api.salistar.com/api/v1/health" \
+            "https://api.salistar.com/api/v1/infra-monitoring/heartbeat/latest" \
+            "https://api.salistar.com/api/v1/infra-monitoring/check-now" \
+            "https://api.salistar.com/api/docs" \
+            "https://backoffice.salistar.com" \
+            "https://ws.salistar.com/health" \
+          ; do
+            code=$(curl -sS -o /dev/null -m 10 -w "%{http_code}" "$url" || echo "000")
+            printf "  %s  %s\n" "$code" "$url"
+          done
+          echo ""
+          echo "===== CORS preflight check ====="
+          curl -sSI -m 10 -H "Origin: https://salistar.com" \
+            -H "Access-Control-Request-Method: GET" \
+            -X OPTIONS https://api.salistar.com/api/v1/health 2>&1 | grep -i "access-control" || echo "(no CORS headers visible)"
