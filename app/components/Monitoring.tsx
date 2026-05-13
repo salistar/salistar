@@ -77,20 +77,52 @@ export default function Monitoring() {
     return () => clearInterval(id);
   }, [loadData]);
 
+  /**
+   * Manual check — calls the BACKEND endpoint that returns the latest
+   * cron heartbeat. The backend's VPS cron is the only thing that can
+   * actually probe the 4 services correctly (TURN is UDP, Mongo is
+   * internal — neither is reachable from the browser).
+   *
+   * If you want a fresh snapshot, this endpoint also computes a live
+   * server-side probe for the 3 HTTP services on demand.
+   */
   const runManualCheck = useCallback(async () => {
     setManualChecking(true);
     setManualCheck(null);
     const t0 = Date.now();
-    const probes: ServiceCheck[] = await Promise.all([
-      probeHttp('api', `${API_BASE}/health`),
-      probeHttp('socket', 'https://ws.salistar.com/health'),
-      probeHttp('turn', 'https://turn.salistar.com:3478'),
-    ]);
-    setManualCheck(probes);
-    setManualChecking(false);
-    // eslint-disable-next-line no-console
-    console.log(`[Monitoring] Manual check completed in ${Date.now() - t0}ms`, probes);
-  }, []);
+    try {
+      // Try the on-demand check endpoint first; if absent, fall back to latest.
+      let probes: ServiceCheck[] | null = null;
+      try {
+        const r = await fetch(`${API_BASE}/infra-monitoring/check-now`, { cache: 'no-store' });
+        if (r.ok) {
+          const j = await r.json();
+          if (j?.success && Array.isArray(j.data?.results)) probes = j.data.results;
+        }
+      } catch {
+        /* fall through */
+      }
+      if (!probes) {
+        const r = await fetch(`${API_BASE}/infra-monitoring/heartbeat/latest`, { cache: 'no-store' });
+        const j = await r.json();
+        if (j?.success && Array.isArray(j.data?.results)) {
+          probes = j.data.results;
+          setLatest(j.data);
+        }
+      }
+      setManualCheck(probes ?? []);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('[Monitoring] manual check failed', e);
+      setManualCheck([]);
+    } finally {
+      setManualChecking(false);
+      // eslint-disable-next-line no-console
+      console.log(`[Monitoring] Manual check completed in ${Date.now() - t0}ms`);
+    }
+    // Also refresh the auto data so cards update.
+    loadData();
+  }, [loadData]);
 
   return (
     <section id="monitoring" className="py-16 bg-gradient-to-b from-slate-900 to-slate-950">
@@ -118,16 +150,23 @@ export default function Monitoring() {
         </div>
 
         {/* Manual check results (priorité sur dernier heartbeat) */}
-        {manualCheck && (
+        {manualCheck && manualCheck.length > 0 && (
           <div className="mb-8 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
             <h3 className="text-emerald-400 font-bold text-sm mb-3 flex items-center gap-2">
-              <CheckCircle2 size={16} /> Vérification manuelle
+              <CheckCircle2 size={16} /> Vérification manuelle (depuis le VPS)
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
               {manualCheck.map((c) => (
                 <CheckRow key={c.service} check={c} />
               ))}
             </div>
+          </div>
+        )}
+        {manualCheck && manualCheck.length === 0 && (
+          <div className="mb-8 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
+            <p className="text-amber-300 text-sm">
+              Aucun heartbeat reçu pour l'instant — attends le prochain run du cron VPS (minuit UTC).
+            </p>
           </div>
         )}
 
@@ -228,27 +267,6 @@ function CheckRow({ check }: { check: ServiceCheck }) {
   );
 }
 
-async function probeHttp(service: 'api' | 'socket' | 'turn', url: string): Promise<ServiceCheck> {
-  const t0 = Date.now();
-  try {
-    const ctrl = new AbortController();
-    const timeout = setTimeout(() => ctrl.abort(), 5000);
-    const res = await fetch(url, { method: 'GET', signal: ctrl.signal, mode: 'no-cors' as any });
-    clearTimeout(timeout);
-    return {
-      service,
-      ok: true,
-      latencyMs: Date.now() - t0,
-      status: res.status,
-      url,
-    };
-  } catch (e: any) {
-    return {
-      service,
-      ok: false,
-      latencyMs: Date.now() - t0,
-      error: e?.message ?? 'unreachable',
-      url,
-    };
-  }
-}
+// probeHttp() removed: browser-side cross-origin probes for TURN (UDP) and
+// internal Mongo are impossible. We now defer ALL real probes to the VPS
+// cron + the on-demand /infra-monitoring/check-now backend endpoint.
