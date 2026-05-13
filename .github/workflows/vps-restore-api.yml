@@ -1,0 +1,77 @@
+name: vps-restore-api
+
+# Restore the API container that vps-fix-404s removed (via --remove-orphans
+# from the wrong docker-compose dir). The API was standalone, not in any
+# compose file. We:
+#   1. List available images to find a sallycards-api candidate.
+#   2. Find the most recently stopped API container to recover its config.
+#   3. Re-run it with the same network + ports + env.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  restore:
+    name: Restore API container
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH restore API
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          capture_stdout: true
+          script: |
+            set +e
+            echo "===== 1. All docker images (looking for API) ====="
+            docker images --format 'table {{.Repository}}\t{{.Tag}}\t{{.CreatedAt}}\t{{.ID}}' | head -40
+            echo ""
+            echo "===== 2. All containers including stopped ====="
+            docker ps -a --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' | head -40
+            echo ""
+            echo "===== 3. Docker networks ====="
+            docker network ls
+            echo ""
+            echo "===== 4. Find API source on disk ====="
+            for d in ~/apps/api ~/apps/sallycards ~/sallycards ~/api /opt/sallycards /opt/api /srv/api /srv/sallycards; do
+              if [ -d "$d" ]; then
+                echo "  exists: $d"
+                ls "$d" | head -10
+                echo "  ---"
+              fi
+            done
+            echo ""
+            echo "===== 5. Recent bash history (docker run / start) ====="
+            HIST=~/.bash_history
+            grep -E "docker (run|start|compose).*api|sallycards-api" "$HIST" 2>/dev/null | tail -20 || echo "(no history hits)"
+            echo ""
+            echo "===== 6. Try to find & start the API ====="
+            API_IMG=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -i -E 'sallycards-api|api' | grep -v nginx | grep -v none | head -1)
+            echo "API_IMG candidate: $API_IMG"
+            if [ -n "$API_IMG" ]; then
+              # Check if a container already exists with the standard name
+              EXISTING=$(docker ps -a --format '{{.Names}}' | grep -i -E '^api$|sallycards-api$' | head -1)
+              if [ -n "$EXISTING" ]; then
+                echo "Starting existing container $EXISTING..."
+                docker start "$EXISTING" 2>&1
+              else
+                echo "No existing api container found, will need manual create."
+                echo "Listing GHCR images that look like API..."
+                docker images --format '{{.Repository}}:{{.Tag}}' | grep -i 'ghcr.io' | grep -i api
+              fi
+            fi
+            echo ""
+            echo "===== 7. Probe localhost:3000 ====="
+            sleep 3
+            curl -sS -o /dev/null -m 5 -w "localhost:3000/api/v1/health -> %{http_code}\n" http://localhost:3000/api/v1/health
+            echo ""
+            echo "===== 8. systemd services that might own the API ====="
+            sudo systemctl list-units --type=service --state=running | grep -i -E 'api|sallycards|node' | head -10
+            ls /etc/systemd/system/ 2>/dev/null | grep -i -E 'api|sallycards|node' | head -10
+            echo ""
+            echo "===== 9. pm2 processes ====="
+            pm2 list 2>/dev/null || echo "(no pm2)"
+            echo ""
+            echo "===== 10. node/pnpm processes still running ====="
+            ps aux | grep -E 'node|pnpm' | grep -v grep | head -10
