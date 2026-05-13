@@ -7,6 +7,7 @@ import { SallyCardsShowcase } from './components/SallyCardsShowcase';
 import { Skills } from './components/Skills';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
+import Monitoring from './components/Monitoring';
 
 export default function Home() {
   return (
@@ -34,6 +35,7 @@ export default function Home() {
       <Experience />
       <Projects />
       <SallyCardsShowcase />
+      <Monitoring />
       <Skills />
       <Contact />
       <Footer />

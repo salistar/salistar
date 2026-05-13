@@ -1,0 +1,254 @@
+/**
+ * @file app/components/Monitoring.tsx
+ * @description Dashboard de monitoring temps réel pour l'infrastructure
+ * SallyCards. Affiche le statut courant des 4 services (API, Socket, TURN,
+ * Mongo) + uptime % sur 30 jours, avec un bouton "Vérifier maintenant".
+ *
+ * Source des données :
+ *   - GET /api/v1/infra-monitoring/heartbeat/latest
+ *   - GET /api/v1/infra-monitoring/uptime?days=30
+ *
+ * Le bouton "Vérifier maintenant" déclenche un check côté front via fetch
+ * direct vers les endpoints /health (pas de POST heartbeat — ça reste
+ * réservé au cron VPS).
+ *
+ * Intégré dans le portfolio salistar (app/page.tsx) en tant que section.
+ */
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+import { Activity, Server, Radio, Database, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+
+const API_BASE = 'https://api.salistar.com/api/v1';
+
+interface ServiceCheck {
+  service: 'api' | 'socket' | 'turn' | 'mongo';
+  ok: boolean;
+  latencyMs: number;
+  status?: number;
+  error?: string;
+  url: string;
+}
+
+interface Heartbeat {
+  source: 'cron' | 'manual' | 'health-test';
+  checkedAt: string;
+  results: ServiceCheck[];
+  allOk: boolean;
+  createdAt: string;
+}
+
+interface UptimeStats {
+  [service: string]: { ok: number; total: number; uptimePct: number };
+}
+
+const SERVICE_META: Record<string, { label: string; icon: typeof Server; color: string }> = {
+  api: { label: 'API REST', icon: Server, color: '#0EA5E9' },
+  socket: { label: 'WebSocket', icon: Radio, color: '#7C3AED' },
+  turn: { label: 'TURN / STUN', icon: Activity, color: '#EC4899' },
+  mongo: { label: 'MongoDB', icon: Database, color: '#10B981' },
+};
+
+export default function Monitoring() {
+  const [latest, setLatest] = useState<Heartbeat | null>(null);
+  const [uptime, setUptime] = useState<UptimeStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [manualCheck, setManualCheck] = useState<ServiceCheck[] | null>(null);
+  const [manualChecking, setManualChecking] = useState(false);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [latestRes, uptimeRes] = await Promise.all([
+        fetch(`${API_BASE}/infra-monitoring/heartbeat/latest`).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE}/infra-monitoring/uptime?days=30`).then((r) => r.json()).catch(() => null),
+      ]);
+      if (latestRes?.success) setLatest(latestRes.data);
+      if (uptimeRes?.success) setUptime(uptimeRes.data);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+    // Auto-refresh toutes les 60 s
+    const id = setInterval(loadData, 60_000);
+    return () => clearInterval(id);
+  }, [loadData]);
+
+  const runManualCheck = useCallback(async () => {
+    setManualChecking(true);
+    setManualCheck(null);
+    const t0 = Date.now();
+    const probes: ServiceCheck[] = await Promise.all([
+      probeHttp('api', `${API_BASE}/health`),
+      probeHttp('socket', 'https://ws.salistar.com/health'),
+      probeHttp('turn', 'https://turn.salistar.com:3478'),
+    ]);
+    setManualCheck(probes);
+    setManualChecking(false);
+    // eslint-disable-next-line no-console
+    console.log(`[Monitoring] Manual check completed in ${Date.now() - t0}ms`, probes);
+  }, []);
+
+  return (
+    <section id="monitoring" className="py-16 bg-gradient-to-b from-slate-900 to-slate-950">
+      <div className="container mx-auto px-6 max-w-6xl">
+        <div className="mb-10 text-center">
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-3">
+            Infra <span className="text-emerald-400">Monitoring</span>
+          </h2>
+          <p className="text-slate-400 text-lg">
+            État temps réel de l'infrastructure SallyCards
+            <span className="text-slate-600"> · auto-refresh 60 s · cron VPS minuit UTC</span>
+          </p>
+        </div>
+
+        {/* Bouton de check manuel */}
+        <div className="flex justify-center mb-8">
+          <button
+            onClick={runManualCheck}
+            disabled={manualChecking}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-full shadow-lg shadow-emerald-500/30 transition-all"
+          >
+            <RefreshCw size={18} className={manualChecking ? 'animate-spin' : ''} />
+            {manualChecking ? 'Vérification…' : 'Vérifier maintenant'}
+          </button>
+        </div>
+
+        {/* Manual check results (priorité sur dernier heartbeat) */}
+        {manualCheck && (
+          <div className="mb-8 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+            <h3 className="text-emerald-400 font-bold text-sm mb-3 flex items-center gap-2">
+              <CheckCircle2 size={16} /> Vérification manuelle
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {manualCheck.map((c) => (
+                <CheckRow key={c.service} check={c} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Grille de services — statut courant */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {(['api', 'socket', 'turn', 'mongo'] as const).map((svc) => {
+            const meta = SERVICE_META[svc];
+            const Icon = meta.icon;
+            const lastResult = latest?.results.find((r) => r.service === svc);
+            const stats = uptime?.[svc];
+            const ok = lastResult?.ok ?? false;
+            return (
+              <div
+                key={svc}
+                className={`relative p-5 rounded-2xl border ${
+                  ok
+                    ? 'bg-emerald-500/5 border-emerald-500/30'
+                    : 'bg-red-500/5 border-red-500/30'
+                } transition-colors`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <Icon size={28} color={meta.color} />
+                  {ok ? (
+                    <CheckCircle2 size={20} className="text-emerald-400" />
+                  ) : (
+                    <XCircle size={20} className="text-red-400" />
+                  )}
+                </div>
+                <h3 className="text-white font-bold text-lg mb-1">{meta.label}</h3>
+                <p className={`text-xs font-mono ${ok ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {ok ? `✓ ${lastResult?.latencyMs ?? 0}ms` : lastResult?.error ?? '✗ DOWN'}
+                </p>
+                {stats && (
+                  <div className="mt-3 pt-3 border-t border-white/10">
+                    <p className="text-slate-500 text-[10px] font-bold tracking-wider">UPTIME 30J</p>
+                    <p className="text-white text-2xl font-black mt-1">
+                      {stats.uptimePct.toFixed(2)}
+                      <span className="text-slate-500 text-sm">%</span>
+                    </p>
+                    <p className="text-slate-600 text-[10px]">
+                      {stats.ok} / {stats.total} checks OK
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Liste des URLs surveillées */}
+        <div className="p-5 bg-slate-800/50 border border-slate-700 rounded-xl">
+          <h3 className="text-slate-300 font-bold text-sm mb-3 flex items-center gap-2">
+            URLs surveillées
+          </h3>
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-400 font-mono">
+            <li>🌐 https://api.salistar.com/api/v1/health</li>
+            <li>🔌 https://ws.salistar.com/health</li>
+            <li>📞 turn.salistar.com:3478 (TCP+UDP)</li>
+            <li>🗄 mongodb://localhost:27017 (interne)</li>
+            <li>🌍 https://sallycards.salistar.com</li>
+            <li>⚙ https://backoffice.salistar.com</li>
+            <li>📺 https://salistar.com</li>
+            <li>🛠 https://api.salistar.com/api/docs (Swagger)</li>
+          </ul>
+        </div>
+
+        {latest && (
+          <p className="text-center text-slate-600 text-xs mt-6">
+            Dernier check : {new Date(latest.checkedAt).toLocaleString('fr-FR')} ·
+            Source : <span className="text-slate-400 font-mono">{latest.source}</span>
+          </p>
+        )}
+
+        {loading && !latest && (
+          <p className="text-center text-slate-500 text-sm">Chargement…</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function CheckRow({ check }: { check: ServiceCheck }) {
+  const meta = SERVICE_META[check.service];
+  return (
+    <div className="flex items-center gap-3 p-2 bg-slate-900/50 rounded-lg">
+      {check.ok ? (
+        <CheckCircle2 size={18} className="text-emerald-400 flex-shrink-0" />
+      ) : (
+        <XCircle size={18} className="text-red-400 flex-shrink-0" />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-white text-sm font-bold">{meta?.label ?? check.service}</p>
+        <p className={`text-xs font-mono truncate ${check.ok ? 'text-emerald-400' : 'text-red-400'}`}>
+          {check.ok ? `${check.latencyMs}ms` : check.error ?? 'ERROR'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+async function probeHttp(service: 'api' | 'socket' | 'turn', url: string): Promise<ServiceCheck> {
+  const t0 = Date.now();
+  try {
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 5000);
+    const res = await fetch(url, { method: 'GET', signal: ctrl.signal, mode: 'no-cors' as any });
+    clearTimeout(timeout);
+    return {
+      service,
+      ok: true,
+      latencyMs: Date.now() - t0,
+      status: res.status,
+      url,
+    };
+  } catch (e: any) {
+    return {
+      service,
+      ok: false,
+      latencyMs: Date.now() - t0,
+      error: e?.message ?? 'unreachable',
+      url,
+    };
+  }
+}
