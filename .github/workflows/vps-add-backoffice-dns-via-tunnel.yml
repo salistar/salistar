@@ -1,0 +1,61 @@
+name: vps-add-backoffice-dns-via-tunnel
+
+# Add backoffice.salistar.com DNS via `cloudflared tunnel route dns` from
+# the VPS (uses the tunnel's own credentials, no external API token needed).
+
+on:
+  workflow_dispatch:
+
+jobs:
+  dns:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          capture_stdout: true
+          script: |
+            set +e
+            echo "===== Current tunnel info ====="
+            sudo cloudflared tunnel list 2>&1 | head -10
+            echo ""
+            echo "===== Route DNS backoffice.salistar.com to tunnel ====="
+            sudo cloudflared tunnel route dns sallycards-prod backoffice.salistar.com 2>&1
+            echo ""
+            echo "===== Listing routes for the tunnel ====="
+            sudo cloudflared tunnel route ip show 2>&1 | head -20 || true
+            echo ""
+            echo "===== DNS propagation check (Cloudflare 1.1.1.1) ====="
+            for i in $(seq 1 6); do
+              result=$(dig +short @1.1.1.1 backoffice.salistar.com 2>/dev/null)
+              if [ -n "$result" ]; then
+                echo "  ✓ Resolves: $result"
+                break
+              fi
+              echo "  [$i/6] not yet, retry in 5s..."
+              sleep 5
+            done
+            echo ""
+            echo "===== HTTP probe ====="
+            curl -sS -o /dev/null -m 8 -w "backoffice.salistar.com -> %{http_code}\n" https://backoffice.salistar.com 2>&1 || true
+            echo ""
+            echo "===== Make sure something is listening on :4002 ====="
+            curl -sS -o /dev/null -m 3 -w "localhost:4002 -> %{http_code}\n" http://localhost:4002/ 2>&1 || true
+            # If nothing on :4002, point to the existing web container on :4000 instead
+            CURR_BO=$(curl -sS -o /dev/null -m 3 -w "%{http_code}" http://localhost:4002/ 2>/dev/null)
+            if [ "$CURR_BO" = "000" ] || [ "$CURR_BO" = "" ]; then
+              echo ""
+              echo "===== Nothing on :4002, redirecting ingress to :4000 instead ====="
+              CF_CONFIG=/etc/cloudflared/config.yml
+              sudo sed -i 's|service: http://localhost:4002|service: http://localhost:4000|' "$CF_CONFIG"
+              echo "Patched config:"
+              sudo grep -A1 backoffice "$CF_CONFIG"
+              echo "Restarting cloudflared..."
+              sudo systemctl restart cloudflared
+              sleep 5
+            fi
+            echo ""
+            echo "===== Final probe ====="
+            curl -sS -o /dev/null -m 10 -w "backoffice.salistar.com -> %{http_code}\n" https://backoffice.salistar.com 2>&1 || true
