@@ -1,0 +1,76 @@
+name: vps-add-backoffice-dns
+
+on:
+  workflow_dispatch:
+
+jobs:
+  dns:
+    runs-on: ubuntu-latest
+    env:
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+      TUNNEL_UUID: ab766441-9686-435d-a762-d4b1bb75f8c8
+    steps:
+      - name: Verify CF token + zone
+        run: |
+          curl -fsS -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}" \
+            | jq '{success, result: {name: .result.name, status: .result.status}}'
+
+      - name: List existing DNS records (subset)
+        run: |
+          curl -fsS -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records?per_page=50" \
+            | jq '.result[] | {type, name, content}'
+
+      - name: Create CNAME backoffice -> tunnel
+        run: |
+          # Check if exists first
+          EXISTING_RAW=$(curl -fsS -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records?type=CNAME&name=backoffice.salistar.com")
+          echo "$EXISTING_RAW" | jq .
+          EXISTING_ID=$(echo "$EXISTING_RAW" | jq -r '.result[0].id // empty')
+
+          if [ -n "$EXISTING_ID" ]; then
+            echo "Record exists ($EXISTING_ID). Updating to ensure proxied=true..."
+            curl -fsS -X PUT \
+              -H "Authorization: Bearer $CF_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data "{\"type\":\"CNAME\",\"name\":\"backoffice.salistar.com\",\"content\":\"${TUNNEL_UUID}.cfargotunnel.com\",\"ttl\":1,\"proxied\":true}" \
+              "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records/${EXISTING_ID}" \
+              | jq '{success, errors, result: {name, content, proxied}}'
+          else
+            echo "Creating new CNAME record..."
+            RESP=$(curl -sS -X POST \
+              -H "Authorization: Bearer $CF_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data "{\"type\":\"CNAME\",\"name\":\"backoffice\",\"content\":\"${TUNNEL_UUID}.cfargotunnel.com\",\"ttl\":1,\"proxied\":true}" \
+              "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records")
+            echo "$RESP" | jq '{success, errors, result: {name, content, proxied}}'
+            if echo "$RESP" | jq -e '.success != true' > /dev/null; then
+              echo "❌ DNS create failed"
+              exit 1
+            fi
+          fi
+
+      - name: Purge Cloudflare cache
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}' \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+            | jq '.success'
+
+      - name: Smoke test
+        run: |
+          sleep 20
+          for url in \
+            "https://backoffice.salistar.com" \
+            "https://api.salistar.com/api/v1/health" \
+            "https://api.salistar.com/api/docs" \
+            "https://api.salistar.com/api/v1/infra-monitoring/heartbeat/latest" \
+          ; do
+            code=$(curl -sS -o /dev/null -m 10 -w "%{http_code}" "$url" || echo "000")
+            echo "  $code  $url"
+          done
