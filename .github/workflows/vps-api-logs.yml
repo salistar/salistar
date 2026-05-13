@@ -1,0 +1,41 @@
+name: vps-api-logs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  logs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          capture_stdout: true
+          script: |
+            set +e
+            echo "===== Container state ====="
+            docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' | grep -i -E 'api|socket|web|nginx'
+            echo ""
+            echo "===== sallycards-api logs (last 80 lines) ====="
+            docker logs --tail 80 sallycards-api 2>&1
+            echo ""
+            echo "===== Container inspect (state) ====="
+            docker inspect sallycards-api --format 'State: {{.State.Status}} | Health: {{.State.Health.Status}} | ExitCode: {{.State.ExitCode}} | Error: {{.State.Error}} | Restarts: {{.RestartCount}}'
+            echo ""
+            echo "===== Compose env (api section) ====="
+            grep -A 30 'sallycards-api:' /home/$USER/apps/sallycards-backoffice/docker-compose.yml 2>/dev/null | head -40
+            echo ""
+            echo "===== Local probe with verbose ====="
+            curl -sSv -m 5 http://localhost:3000/api/v1/health 2>&1 | head -30
+            echo ""
+            echo "===== Force restart with fresh state ====="
+            cd ~/apps/sallycards-backoffice
+            docker compose restart sallycards-api 2>&1 | tail -10
+            sleep 8
+            echo ""
+            echo "===== Post-restart logs ====="
+            docker logs --tail 40 sallycards-api 2>&1
+            echo ""
+            curl -sS -o /dev/null -m 5 -w "post-restart localhost:3000 -> %{http_code}\n" http://localhost:3000/api/v1/health
