@@ -56,15 +56,36 @@ export default function Monitoring() {
   const [manualCheck, setManualCheck] = useState<ServiceCheck[] | null>(null);
   const [manualChecking, setManualChecking] = useState(false);
 
+  /**
+   * The backend wraps controller results twice ({ success, data: { success, data: ... } })
+   * because of NestJS' global TransformInterceptor. This helper digs through
+   * any number of nested `data` envelopes until it finds the actual payload.
+   */
+  const unwrap = (raw: any): any => {
+    let cur = raw;
+    while (cur && typeof cur === 'object' && 'success' in cur && 'data' in cur) {
+      cur = cur.data;
+    }
+    return cur;
+  };
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [latestRes, uptimeRes] = await Promise.all([
-        fetch(`${API_BASE}/infra-monitoring/heartbeat/latest`).then((r) => r.json()).catch(() => null),
-        fetch(`${API_BASE}/infra-monitoring/uptime?days=30`).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE}/infra-monitoring/heartbeat/latest`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE}/infra-monitoring/uptime?days=30`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
       ]);
-      if (latestRes?.success) setLatest(latestRes.data);
-      if (uptimeRes?.success) setUptime(uptimeRes.data);
+      const latestPayload = unwrap(latestRes);
+      const uptimePayload = unwrap(uptimeRes);
+      if (latestPayload && Array.isArray(latestPayload?.results)) {
+        setLatest(latestPayload);
+      }
+      if (uptimePayload && typeof uptimePayload === 'object' && !Array.isArray(uptimePayload)) {
+        // Strip the meta key if present.
+        const { meta: _meta, ...stats } = uptimePayload as any;
+        setUptime(stats as UptimeStats);
+      }
     } finally {
       setLoading(false);
     }
@@ -97,7 +118,8 @@ export default function Monitoring() {
         const r = await fetch(`${API_BASE}/infra-monitoring/check-now`, { cache: 'no-store' });
         if (r.ok) {
           const j = await r.json();
-          if (j?.success && Array.isArray(j.data?.results)) probes = j.data.results;
+          const payload = unwrap(j);
+          if (payload && Array.isArray(payload?.results)) probes = payload.results;
         }
       } catch {
         /* fall through */
@@ -105,9 +127,10 @@ export default function Monitoring() {
       if (!probes) {
         const r = await fetch(`${API_BASE}/infra-monitoring/heartbeat/latest`, { cache: 'no-store' });
         const j = await r.json();
-        if (j?.success && Array.isArray(j.data?.results)) {
-          probes = j.data.results;
-          setLatest(j.data);
+        const payload = unwrap(j);
+        if (payload && Array.isArray(payload?.results)) {
+          probes = payload.results;
+          setLatest(payload);
         }
       }
       setManualCheck(probes ?? []);
@@ -122,6 +145,8 @@ export default function Monitoring() {
     }
     // Also refresh the auto data so cards update.
     loadData();
+    // unwrap is stable across renders; loadData is the only real dep.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadData]);
 
   return (
