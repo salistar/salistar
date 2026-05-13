@@ -1,0 +1,151 @@
+name: vps-fix-404s
+
+# One-shot maintenance workflow:
+#   1. SSH to VPS, locate the backend docker-compose, git pull + rebuild API
+#      so the new InfraMonitoringModule + Swagger-in-prod changes go live.
+#   2. Patch the cloudflared ingress to add backoffice.salistar.com.
+#   3. Call Cloudflare API to add the DNS CNAME for backoffice -> tunnel.
+#   4. Final smoke test of the four formerly-404 URLs.
+#
+# Trigger manually:
+#   gh workflow run vps-fix-404s.yml --repo salistar/salistar
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    name: Discover + Fix VPS state
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH discover + backend rebuild
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            echo "========== A. Discovery =========="
+            echo "Home: $HOME"
+            ls -la ~/apps/ 2>/dev/null || echo "(no ~/apps)"
+            echo "----- All docker-compose files within 4 levels of home -----"
+            find ~ -maxdepth 4 -name "docker-compose*.yml" 2>/dev/null || true
+            echo "----- Running containers -----"
+            docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}' || true
+            echo "----- Cloudflared config -----"
+            sudo cat /etc/cloudflared/config.yml 2>/dev/null || cat ~/cloudflared/config.yml 2>/dev/null || find / -name "config.yml" -path "*cloudflared*" 2>/dev/null | head -3 || echo "(cloudflared config not found)"
+
+            echo ""
+            echo "========== B. Backend redeploy =========="
+            BACKEND_DIR=""
+            for candidate in ~/apps/sallycards ~/apps/api ~/apps/sallycards-api ~/sallycards ~/api ~/apps/backend; do
+              if [ -d "$candidate" ] && [ -f "$candidate/docker-compose.yml" ]; then
+                BACKEND_DIR="$candidate"
+                break
+              fi
+            done
+            if [ -z "$BACKEND_DIR" ]; then
+              echo "!! No backend dir with docker-compose.yml found"
+              BACKEND_DIR=$(find ~ -maxdepth 4 -name "docker-compose*.yml" 2>/dev/null | xargs -I{} dirname {} | head -1)
+              echo "Falling back to first compose dir found: $BACKEND_DIR"
+            fi
+            if [ -n "$BACKEND_DIR" ] && [ -d "$BACKEND_DIR" ]; then
+              echo "Using BACKEND_DIR=$BACKEND_DIR"
+              cd "$BACKEND_DIR"
+              if [ -d .git ]; then
+                echo "Pulling latest..."
+                git fetch --all 2>&1 || true
+                git reset --hard origin/main 2>&1 || git reset --hard origin/master 2>&1 || true
+              fi
+              echo "Rebuilding api container..."
+              docker compose build api 2>&1 | tail -30 || docker compose build 2>&1 | tail -30 || true
+              docker compose up -d --remove-orphans 2>&1 | tail -10 || true
+              sleep 5
+              docker compose ps 2>&1 | head -20 || docker ps | head -20
+            fi
+
+            echo ""
+            echo "========== C. Cloudflared ingress patch (backoffice) =========="
+            CF_CONFIG=""
+            for c in /etc/cloudflared/config.yml ~/cloudflared/config.yml /root/.cloudflared/config.yml ~/.cloudflared/config.yml; do
+              if sudo test -f "$c" 2>/dev/null || test -f "$c"; then
+                CF_CONFIG="$c"
+                break
+              fi
+            done
+            echo "Cloudflared config: $CF_CONFIG"
+            if [ -n "$CF_CONFIG" ]; then
+              if ! sudo grep -q "backoffice.salistar.com" "$CF_CONFIG" 2>/dev/null && ! grep -q "backoffice.salistar.com" "$CF_CONFIG" 2>/dev/null; then
+                echo "Adding backoffice.salistar.com to ingress..."
+                # Insert before the catch-all http_status:404
+                sudo cp "$CF_CONFIG" "${CF_CONFIG}.bak" 2>/dev/null || cp "$CF_CONFIG" "${CF_CONFIG}.bak" || true
+                sudo sed -i '/http_status:404/i\  - hostname: backoffice.salistar.com\n    service: http://localhost:4002' "$CF_CONFIG" 2>/dev/null || sed -i '/http_status:404/i\  - hostname: backoffice.salistar.com\n    service: http://localhost:4002' "$CF_CONFIG"
+                echo "Restarting cloudflared..."
+                sudo systemctl restart cloudflared 2>&1 || sudo service cloudflared restart 2>&1 || docker compose -f /opt/sallycards/docker-compose.yml restart cloudflared 2>&1 || echo "(could not restart cloudflared)"
+                echo "Updated config:"
+                sudo cat "$CF_CONFIG" 2>/dev/null || cat "$CF_CONFIG"
+              else
+                echo "backoffice.salistar.com already in ingress"
+              fi
+            fi
+
+            echo ""
+            echo "========== D. Final smoke test =========="
+            for url in \
+              "https://api.salistar.com/api/v1/health" \
+              "https://api.salistar.com/api/v1/infra-monitoring/heartbeat/latest" \
+              "https://api.salistar.com/api/docs" \
+              "https://backoffice.salistar.com" \
+            ; do
+              code=$(curl -sS -o /dev/null -m 5 -w "%{http_code}" "$url" || echo "000")
+              echo "  $code  $url"
+            done
+
+      - name: Cloudflare — add DNS for backoffice
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          TUNNEL_UUID: ab766441-9686-435d-a762-d4b1bb75f8c8
+        run: |
+          set -e
+          if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ZONE_ID" ]; then
+            echo "CF secrets missing; skipping DNS"
+            exit 0
+          fi
+          # Check if record exists
+          EXISTING=$(curl -fsS -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records?type=CNAME&name=backoffice.salistar.com" \
+            | jq -r '.result[0].id // empty')
+          if [ -n "$EXISTING" ]; then
+            echo "DNS record already exists (id=$EXISTING)"
+          else
+            echo "Creating CNAME backoffice.salistar.com -> ${TUNNEL_UUID}.cfargotunnel.com"
+            curl -fsS -X POST \
+              -H "Authorization: Bearer $CF_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data "{\"type\":\"CNAME\",\"name\":\"backoffice\",\"content\":\"${TUNNEL_UUID}.cfargotunnel.com\",\"ttl\":1,\"proxied\":true}" \
+              "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records" \
+              | jq -r '.success, .errors'
+          fi
+          # Purge cache
+          curl -fsS -X POST \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}' \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+            | jq -r '.success'
+
+      - name: Post-deploy probe
+        run: |
+          sleep 20
+          echo "Final URLs:"
+          for url in \
+            "https://api.salistar.com/api/v1/health" \
+            "https://api.salistar.com/api/v1/infra-monitoring/heartbeat/latest" \
+            "https://api.salistar.com/api/docs" \
+            "https://backoffice.salistar.com" \
+          ; do
+            code=$(curl -sS -o /dev/null -m 8 -w "%{http_code}" "$url" || echo "000")
+            echo "  $code  $url"
+          done
