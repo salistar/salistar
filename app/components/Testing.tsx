@@ -20,8 +20,9 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
-  FlaskConical, Bot, Repeat2, Globe2, Theater, ChevronRight, BookOpen, ExternalLink,
+  FlaskConical, Bot, Repeat2, Globe2, Theater, ChevronRight,
 } from 'lucide-react';
 
 type Category = 'general' | 'robot' | 'cypress' | 'selenium' | 'playwright';
@@ -107,7 +108,6 @@ const ARTICLES: Record<Category, Article[]> = {
 
 export function Testing() {
   const [active, setActive] = useState<Category>('general');
-  const [openId, setOpenId] = useState<number | null>(null);
 
   const tabs: Category[] = ['general', 'robot', 'cypress', 'selenium', 'playwright'];
   const articles = ARTICLES[active];
@@ -140,7 +140,6 @@ export function Testing() {
                 key={cat}
                 onClick={() => {
                   setActive(cat);
-                  setOpenId(null);
                 }}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
                   isActive
@@ -165,74 +164,41 @@ export function Testing() {
           </p>
         </div>
 
-        {/* Articles list */}
+        {/* Articles list — chaque carte mène à /testing/[id] (page A4 bilingue) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-          {articles.map((a) => {
-            const isOpen = openId === a.n;
-            return (
-              <button
-                key={a.n}
-                onClick={() => setOpenId(isOpen ? null : a.n)}
-                className={`text-left p-4 rounded-xl border transition-all ${
-                  isOpen
-                    ? 'bg-white/5 border-white/20'
-                    : 'bg-[#111827]/40 border-white/5 hover:border-white/15 hover:bg-white/5'
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <span
-                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold"
-                    style={{ background: meta.color + '22', color: meta.color }}
-                  >
-                    {a.n.toString().padStart(2, '0')}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold text-sm leading-snug mb-1">{a.title}</p>
-                    <p className="text-[#97a0b4] text-xs leading-relaxed">{a.summary}</p>
-                  </div>
-                  <ChevronRight
-                    size={16}
-                    className={`text-[#97a0b4] flex-shrink-0 transition-transform ${
-                      isOpen ? 'rotate-90' : ''
-                    }`}
-                  />
+          {articles.map((a) => (
+            <Link
+              key={a.n}
+              href={`/testing/${a.n}`}
+              className="text-left p-4 rounded-xl border bg-[#111827]/40 border-white/5 hover:border-white/15 hover:bg-white/5 transition-all block group"
+            >
+              <div className="flex items-start gap-3">
+                <span
+                  className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold"
+                  style={{ background: meta.color + '22', color: meta.color }}
+                >
+                  {a.n.toString().padStart(2, '0')}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-semibold text-sm leading-snug mb-1 group-hover:text-[#5cd2c4] transition-colors">
+                    {a.title}
+                  </p>
+                  <p className="text-[#97a0b4] text-xs leading-relaxed">{a.summary}</p>
                 </div>
-              </button>
-            );
-          })}
+                <ChevronRight size={16} className="text-[#97a0b4] flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+          ))}
         </div>
 
-        {/* Open article body */}
-        {openId !== null && (() => {
-          const a = articles.find((x) => x.n === openId)!;
-          return (
-            <div className="gradient-border p-7 animate-fade-in">
-              <div className="flex items-center gap-2 mb-3 text-xs font-mono text-[#97a0b4]">
-                <BookOpen size={14} />
-                Article {a.n.toString().padStart(2, '0')} · {meta.label}
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">{a.title}</h3>
-              <p className="text-[#5cd2c4] text-sm mb-5">{a.summary}</p>
-              <p className="text-[#e7e9ee]/90 leading-relaxed mb-5 text-[15px]">{a.body}</p>
-              <div className="flex flex-wrap gap-2 mb-5">
-                {a.tags.map((t) => (
-                  <span key={t} className="tag">
-                    {t}
-                  </span>
-                ))}
-              </div>
-              <a
-                href="https://github.com/salistar/SallyCards/blob/main/docs/TESTING.md"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-[#97a0b4] hover:text-[#5cd2c4] transition"
-              >
-                <ExternalLink size={12} />
-                Full version in docs/TESTING.md
-              </a>
-            </div>
-          );
-        })()}
+        {/* Info bilingue */}
+        <div className="mb-6 p-4 rounded-xl bg-[#5cd2c4]/5 border border-[#5cd2c4]/20">
+          <p className="text-[#5cd2c4] text-xs font-bold tracking-wider mb-1">📖 LECTURE LONGUE</p>
+          <p className="text-[#97a0b4] text-sm">
+            Cliquez sur un article pour le lire en version longue (~2-3 pages A4) avec un toggle <span className="text-white font-bold">FR / EN</span> en haut de la page.
+            5 articles sont déjà rédigés en full bilingue ; les 45 autres seront enrichis progressivement.
+          </p>
+        </div>
 
         {/* Stats footer */}
         <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">

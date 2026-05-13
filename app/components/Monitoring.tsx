@@ -17,12 +17,12 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Activity, Server, Radio, Database, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Activity, Server, Radio, Database, Zap, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
 
 const API_BASE = 'https://api.salistar.com/api/v1';
 
 interface ServiceCheck {
-  service: 'api' | 'socket' | 'turn' | 'mongo';
+  service: 'api' | 'socket' | 'turn' | 'mongo' | 'redis';
   ok: boolean;
   latencyMs: number;
   status?: number;
@@ -47,6 +47,7 @@ const SERVICE_META: Record<string, { label: string; icon: typeof Server; color: 
   socket: { label: 'WebSocket', icon: Radio, color: '#7C3AED' },
   turn: { label: 'TURN / STUN', icon: Activity, color: '#EC4899' },
   mongo: { label: 'MongoDB', icon: Database, color: '#10B981' },
+  redis: { label: 'Redis', icon: Zap, color: '#DC2626' },
 };
 
 export default function Monitoring() {
@@ -196,8 +197,8 @@ export default function Monitoring() {
         )}
 
         {/* Grille de services — statut courant */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {(['api', 'socket', 'turn', 'mongo'] as const).map((svc) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          {(['api', 'socket', 'turn', 'mongo', 'redis'] as const).map((svc) => {
             const meta = SERVICE_META[svc];
             const Icon = meta.icon;
             const lastResult = latest?.results.find((r) => r.service === svc);
@@ -247,14 +248,15 @@ export default function Monitoring() {
             URLs surveillées
           </h3>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-400 font-mono">
-            <li>🌐 https://api.salistar.com/api/v1/health</li>
-            <li>🔌 https://ws.salistar.com/health</li>
-            <li>📞 turn.salistar.com:3478 (TCP+UDP)</li>
-            <li>🗄 mongodb://localhost:27017 (interne)</li>
-            <li>🌍 https://sallycards.salistar.com</li>
-            <li>⚙ https://backoffice.salistar.com</li>
-            <li>📺 https://salistar.com</li>
-            <li>🛠 https://api.salistar.com/api/docs (Swagger)</li>
+            <li>🌐 <a href="https://api.salistar.com/api/v1/health" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400">api.salistar.com/api/v1/health</a></li>
+            <li>🔌 <a href="https://ws.salistar.com/health" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400">ws.salistar.com/health</a></li>
+            <li>📞 turn.salistar.com:3478 (TCP/UDP)</li>
+            <li>🗄 <a href="https://mongo.salistar.com" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400">mongo.salistar.com</a> (auth)</li>
+            <li>⚡ <a href="https://redis.salistar.com" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400">redis.salistar.com</a> (auth)</li>
+            <li>🌍 <a href="https://sallycards.salistar.com" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400">sallycards.salistar.com</a></li>
+            <li>⚙ <a href="https://backoffice.salistar.com" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400">backoffice.salistar.com</a></li>
+            <li>📺 <a href="https://salistar.com" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400">salistar.com</a></li>
+            <li>🛠 <a href="https://api.salistar.com/api/docs" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400">api.salistar.com/api/docs</a></li>
           </ul>
         </div>
 

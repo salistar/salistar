@@ -1,7 +1,17 @@
+import Link from 'next/link';
 import { ExternalLink, Github, Sparkles } from 'lucide-react';
 
 const projects = [
   {
+    slug: 'sallycards',
+    name: 'SallyCards',
+    summary:
+      '11 mobile card games for the MENA region (Solitaire, Belote, Ronda, Tarot, Scopa, Poker, Okey, Kdoub, Memory, Qui-Est-Ce?) with real-time multiplayer.',
+    stack: ['React Native', 'NestJS', 'WebRTC', 'MongoDB'],
+    color: 'from-[#5cd2c4] to-[#0a8aa8]',
+  },
+  {
+    slug: 'sallyrecruit',
     name: 'SallyRecruit',
     summary:
       'Modern recruitment platform — candidate sourcing, applicant tracking, and structured interview workflows for MENA companies.',
@@ -9,6 +19,7 @@ const projects = [
     color: 'from-[#5cd2c4] to-[#0a8aa8]',
   },
   {
+    slug: 'sallyescapegeo',
     name: 'Sallyescapegeo',
     summary:
       'Geo-tracking and outdoor adventure logging — GPS trace recording, waypoint sharing, and route discovery, packaged as a mobile app.',
@@ -16,18 +27,12 @@ const projects = [
     color: 'from-[#ec5990] to-[#7e2d6f]',
   },
   {
+    slug: 'darijabot',
     name: 'Darijabot',
     summary:
       'Conversational AI in Moroccan Darija — fine-tuned dialogue with retrieval-augmented context, custom dataset, and content moderation.',
     stack: ['OpenAI', 'Pinecone', 'Python', 'Next.js'],
     color: 'from-[#f5b13a] to-[#a8541a]',
-  },
-  {
-    name: 'goWithSally',
-    summary:
-      'A travel companion app that suggests itineraries, places to eat, and experiences based on your taste profile and current location.',
-    stack: ['React Native', 'Node.js', 'Redis', 'OpenStreetMap'],
-    color: 'from-[#5cd2c4] to-[#3475a8]',
   },
 ];
 
@@ -48,9 +53,10 @@ export function Projects() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {projects.map((p) => (
-            <article
-              key={p.name}
-              className="gradient-border p-7 group transition hover:-translate-y-1 cursor-default"
+            <Link
+              key={p.slug}
+              href={`/projects/${p.slug}`}
+              className="gradient-border p-7 group transition hover:-translate-y-1 block"
             >
               <div className="flex items-start justify-between mb-4">
                 <div
@@ -65,14 +71,17 @@ export function Projects() {
               </div>
               <h3 className="text-xl font-semibold mb-2">{p.name}</h3>
               <p className="text-sm text-[#97a0b4] leading-relaxed mb-4">{p.summary}</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mb-4">
                 {p.stack.map((s) => (
                   <span key={s} className="tag">
                     {s}
                   </span>
                 ))}
               </div>
-            </article>
+              <span className="text-xs text-[#5cd2c4] font-semibold inline-flex items-center gap-1">
+                Read more <ExternalLink size={12} />
+              </span>
+            </Link>
           ))}
         </div>
 
