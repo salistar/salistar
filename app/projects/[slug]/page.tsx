@@ -106,6 +106,32 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ slug: 
           </div>
         )}
 
+        {/* Author signature */}
+        <div className="mt-12 p-6 rounded-2xl bg-gradient-to-br from-[#5cd2c4]/10 via-transparent to-[#ec5990]/10 border border-white/10">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#f5b13a] via-[#ec5990] to-[#5cd2c4] flex items-center justify-center font-black text-[#0a0e1a] text-xl shadow-lg flex-shrink-0">
+              IK
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-[#97a0b4] font-mono tracking-wider mb-1">
+                {locale === 'fr' ? 'CONÇU & DÉVELOPPÉ PAR' : 'DESIGNED & BUILT BY'}
+              </p>
+              <p className="text-lg font-bold text-white">Idriss Kriouile</p>
+              <p className="text-sm text-[#97a0b4]">
+                {locale === 'fr'
+                  ? 'Fondateur de SallyStar · Full-stack engineer · Morocco'
+                  : 'Founder of SallyStar · Full-stack engineer · Morocco'}
+              </p>
+            </div>
+            <a
+              href="mailto:salistarcompany@gmail.com"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-[#5cd2c4] bg-[#5cd2c4]/10 border border-[#5cd2c4]/30 hover:bg-[#5cd2c4]/20 transition flex-shrink-0"
+            >
+              {locale === 'fr' ? 'Contact' : 'Get in touch'}
+            </a>
+          </div>
+        </div>
+
         {/* Footer nav */}
         <div className="mt-16 pt-8 border-t border-white/5 flex items-center justify-between">
           <Link href="/" className="text-sm text-[#97a0b4] hover:text-[#5cd2c4] inline-flex items-center gap-2">
