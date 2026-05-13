@@ -7,6 +7,8 @@ const links = [
   { href: '#experience', label: 'Experience' },
   { href: '#projects', label: 'Projects' },
   { href: '#sallycards', label: 'SallyCards' },
+  { href: '#testing', label: 'Testing' },
+  { href: '#monitoring', label: 'Monitoring' },
   { href: '#skills', label: 'Skills' },
   { href: '#contact', label: 'Contact' },
 ];
@@ -24,8 +26,10 @@ export function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'glass border-b border-white/5' : ''
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 backdrop-blur-xl border-b ${
+        scrolled
+          ? 'bg-[#0a0e1a]/95 border-white/10 shadow-lg shadow-black/40'
+          : 'bg-[#0a0e1a]/80 border-white/5'
       }`}
     >
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -68,7 +72,7 @@ export function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden glass border-t border-white/5 px-6 py-4 space-y-2">
+        <div className="md:hidden bg-[#0a0e1a]/95 backdrop-blur-xl border-t border-white/5 px-6 py-4 space-y-2">
           {links.map((l) => (
             <a
               key={l.href}
