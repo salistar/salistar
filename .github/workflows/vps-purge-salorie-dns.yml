@@ -1,0 +1,37 @@
+name: vps-purge-salorie-dns
+
+# Force Cloudflare cache purge + restart cloudflared to refresh DNS records.
+# Helps speed up DNS propagation for the new salorie.salistar.com record.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    env:
+      CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+    steps:
+      - name: Purge Cloudflare cache for salorie.salistar.com
+        run: |
+          curl -fsS -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"hosts":["salorie.salistar.com"]}' 2>&1 | head -10 || true
+
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          capture_stdout: true
+          script: |
+            # Flush systemd-resolved cache on VPS
+            sudo resolvectl flush-caches 2>&1 || sudo systemd-resolve --flush-caches 2>&1 || true
+            sudo systemctl restart cloudflared
+            sleep 5
+            echo "===== Probe ====="
+            curl -sS -o /dev/null -m 10 -w "salorie.salistar.com -> %{http_code}\n" https://salorie.salistar.com 2>&1 || true
+            dig +short @1.1.1.1 salorie.salistar.com
+            dig +short @8.8.8.8 salorie.salistar.com
