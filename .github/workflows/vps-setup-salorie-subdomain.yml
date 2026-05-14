@@ -32,8 +32,22 @@ jobs:
 
             echo ""
             echo "===== 2/6 Route DNS salorie.salistar.com to tunnel ====="
-            sudo cloudflared tunnel route dns sallycards-prod salorie.salistar.com 2>&1 || \
-              echo "DNS route may already exist (ignored)"
+            # Locate cert.pem (sudo loses HOME, so we resolve it ourselves)
+            CERT_PATH=""
+            for p in ~/.cloudflared/cert.pem /etc/cloudflared/cert.pem /root/.cloudflared/cert.pem; do
+              if sudo test -f "$p" 2>/dev/null; then CERT_PATH="$p"; break; fi
+            done
+            if [ -z "$CERT_PATH" ]; then
+              # Search anywhere
+              CERT_PATH=$(sudo find / -name cert.pem -path "*cloudflared*" 2>/dev/null | head -1)
+            fi
+            echo "Cert found at: $CERT_PATH"
+            if [ -n "$CERT_PATH" ]; then
+              sudo cloudflared --origincert "$CERT_PATH" tunnel route dns sallycards-prod salorie.salistar.com 2>&1 || \
+                echo "DNS route may already exist (ignored)"
+            else
+              echo "WARNING: cert.pem not found, DNS route step skipped (may already exist)"
+            fi
 
             echo ""
             echo "===== 3/6 Patch /etc/cloudflared/config.yml to add ingress ====="
