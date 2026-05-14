@@ -1,0 +1,149 @@
+name: vps-setup-salorie-subdomain
+
+# Setup the salorie.salistar.com subdomain on the VPS Hetzner via the existing
+# Cloudflare tunnel 'sallycards-prod' (no external API token needed for DNS,
+# the tunnel's own credentials are used).
+#
+# Steps:
+#   1. Create DNS record via `cloudflared tunnel route dns sallycards-prod salorie.salistar.com`
+#   2. Patch /etc/cloudflared/config.yml to add the ingress rule (localhost:4003)
+#   3. Restart cloudflared
+#   4. Clone the salorie-landing repo to ~/apps/salorie-landing
+#   5. Login to GHCR + pull image + docker compose up -d
+#   6. Verify https://salorie.salistar.com returns 200
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          capture_stdout: true
+          script: |
+            set +e
+            echo "===== 1/6 Tunnel info ====="
+            sudo cloudflared tunnel list 2>&1 | head -10
+
+            echo ""
+            echo "===== 2/6 Route DNS salorie.salistar.com to tunnel ====="
+            sudo cloudflared tunnel route dns sallycards-prod salorie.salistar.com 2>&1 || \
+              echo "DNS route may already exist (ignored)"
+
+            echo ""
+            echo "===== 3/6 Patch /etc/cloudflared/config.yml to add ingress ====="
+            CF_CONFIG=/etc/cloudflared/config.yml
+            if sudo grep -q "salorie.salistar.com" "$CF_CONFIG"; then
+              echo "Already configured, skipping patch"
+            else
+              echo "Adding ingress rule for salorie.salistar.com -> localhost:4003"
+              # Insert before the "- service: http_status:404" catch-all
+              sudo python3 - <<'PYEOF'
+            import re
+            CONFIG = '/etc/cloudflared/config.yml'
+            with open(CONFIG) as f:
+                content = f.read()
+            new_entry = (
+                '  - hostname: salorie.salistar.com\n'
+                '    service: http://localhost:4003\n'
+            )
+            # Insert before the catch-all 404 (be lenient about indentation)
+            content_new = re.sub(
+                r'^(\s*)- service:\s*http_status:404',
+                new_entry + r'\1- service: http_status:404',
+                content,
+                count=1,
+                flags=re.MULTILINE,
+            )
+            if content == content_new:
+                print('FAIL: catch-all 404 entry not found, appending at end')
+                content_new = content.rstrip() + '\n' + new_entry
+            with open(CONFIG, 'w') as f:
+                f.write(content_new)
+            print('Config patched OK')
+            PYEOF
+              echo "Config diff after patch:"
+              sudo grep -B1 -A1 salorie "$CF_CONFIG" 2>&1 | head -10
+            fi
+
+            echo ""
+            echo "===== 4/6 Restart cloudflared ====="
+            sudo systemctl restart cloudflared
+            sleep 5
+            sudo systemctl is-active cloudflared
+
+            echo ""
+            echo "===== 5/6 Clone & start salorie-landing container ====="
+            mkdir -p ~/apps/salorie-landing
+            cd ~/apps/salorie-landing
+            if [ -d .git ]; then
+              echo "Repo exists, pulling..."
+              git fetch --all
+              git reset --hard origin/main
+            else
+              echo "Cloning repo..."
+              git clone https://github.com/salistar/salorie-landing.git .
+            fi
+
+            echo ""
+            echo "Login to GHCR..."
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u salistar --password-stdin
+
+            echo ""
+            echo "Pull image + start container..."
+            docker compose pull
+            docker compose up -d --remove-orphans
+            sleep 5
+            docker compose ps
+
+            echo ""
+            echo "===== 6/6 Verify ====="
+            # DNS propagation
+            for i in $(seq 1 6); do
+              result=$(dig +short @1.1.1.1 salorie.salistar.com 2>/dev/null)
+              if [ -n "$result" ]; then
+                echo "DNS resolves: $result"
+                break
+              fi
+              echo "  [$i/6] DNS not propagated, retry in 5s..."
+              sleep 5
+            done
+
+            # Local port check
+            curl -sS -o /dev/null -m 5 -w "localhost:4003 -> %{http_code}\n" http://localhost:4003/ 2>&1
+
+            # HTTPS endpoint
+            sleep 5
+            for i in $(seq 1 5); do
+              code=$(curl -sS -o /dev/null -m 10 -w "%{http_code}" https://salorie.salistar.com 2>/dev/null)
+              echo "  [$i/5] https://salorie.salistar.com -> $code"
+              if [ "$code" = "200" ]; then
+                echo "SUCCESS! Landing page is live."
+                break
+              fi
+              sleep 5
+            done
+
+  cloudflare-purge:
+    name: Purge Cloudflare cache for new subdomain
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+    steps:
+      - name: Purge cache
+        run: |
+          if [ -z "$CF_ZONE_ID" ] || [ -z "$CF_API_TOKEN" ]; then
+            echo "Cloudflare secrets missing, skipping cache purge"
+            exit 0
+          fi
+          curl -fsS -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"hosts":["salorie.salistar.com"]}' 2>&1 | head -5 || echo "Purge may have failed (token might lack DNS scope)"
