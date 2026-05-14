@@ -1,0 +1,71 @@
+name: vps-diagnose-salorie
+
+# Compare sallycards.salistar.com (works) vs salorie.salistar.com (doesn't) setup
+# on the VPS. Inspects cloudflared config, tunnel route, DNS resolution, and the
+# actual Cloudflare DNS record via the cloudflared CLI (which talks to CF API).
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          capture_stdout: true
+          script: |
+            set +e
+            CERT=$(sudo find / -name cert.pem -path "*cloudflared*" 2>/dev/null | head -1)
+            echo "===== Cert path : $CERT ====="
+
+            echo ""
+            echo "===== 1. /etc/cloudflared/config.yml (full) ====="
+            sudo cat /etc/cloudflared/config.yml 2>&1
+
+            echo ""
+            echo "===== 2. cloudflared service status ====="
+            sudo systemctl status cloudflared --no-pager 2>&1 | head -20
+
+            echo ""
+            echo "===== 3. cloudflared tunnel info (route list) ====="
+            sudo cloudflared --origincert "$CERT" tunnel info sallycards-prod 2>&1 | head -40
+
+            echo ""
+            echo "===== 4. DNS resolution from VPS (Cloudflare 1.1.1.1) ====="
+            for host in sallycards.salistar.com salorie.salistar.com backoffice.salistar.com; do
+              ip=$(dig +short @1.1.1.1 "$host" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+              echo "  $host -> ${ip:-NOT FOUND}"
+            done
+
+            echo ""
+            echo "===== 5. DNS resolution from VPS (default DNS) ====="
+            for host in sallycards.salistar.com salorie.salistar.com backoffice.salistar.com; do
+              ip=$(dig +short "$host" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+              echo "  $host -> ${ip:-NOT FOUND}"
+            done
+
+            echo ""
+            echo "===== 6. HTTPS probe from VPS ====="
+            for host in sallycards.salistar.com salorie.salistar.com; do
+              code=$(curl -sS -o /dev/null -m 10 -w "%{http_code}" "https://$host" 2>/dev/null)
+              echo "  https://$host -> HTTP $code"
+            done
+
+            echo ""
+            echo "===== 7. Local ports ====="
+            for port in 4000 4001 4002 4003; do
+              code=$(curl -sS -o /dev/null -m 3 -w "%{http_code}" "http://localhost:$port/" 2>/dev/null)
+              echo "  localhost:$port -> HTTP $code"
+            done
+
+            echo ""
+            echo "===== 8. Docker containers ====="
+            sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>&1 | head -20
+
+            echo ""
+            echo "===== 9. cloudflared logs (last 30 lines) ====="
+            sudo journalctl -u cloudflared --no-pager -n 30 2>&1
