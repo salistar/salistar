@@ -78,15 +78,13 @@ export function Hero() {
             </a>
           </div>
 
-          {/* Footer links */}
+          {/* Footer links — pure CSS hover via classes */}
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm" style={{ color: 'rgba(248,250,252,0.65)' }}>
             <a
               href="https://github.com/salistar"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 transition"
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#FCD34D')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(248,250,252,0.65)')}
+              className="hero-link inline-flex items-center gap-2 transition-colors duration-200"
             >
               <Github size={16} /> github.com/salistar
             </a>
@@ -95,9 +93,7 @@ export function Hero() {
             </span>
             <a
               href="mailto:salistarcompany@gmail.com"
-              className="inline-flex items-center gap-2 transition"
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#FCD34D')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(248,250,252,0.65)')}
+              className="hero-link inline-flex items-center gap-2 transition-colors duration-200"
             >
               <Mail size={16} /> salistarcompany@gmail.com
             </a>
