@@ -1,16 +1,26 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-bg: #0a0e1a;
-  --color-bg-elevated: #111827;
-  --color-surface: #1a2236;
-  --color-border: #2a3551;
-  --color-fg: #e7e9ee;
-  --color-fg-muted: #97a0b4;
-  --color-accent: #f5b13a;
-  --color-accent-2: #ec5990;
-  --color-accent-3: #5cd2c4;
-  --font-display: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  /* Premium blue gradient palette — aligned with sallycards.salistar.com */
+  --color-navy: #0A1F44;
+  --color-royal: #1E3A8A;
+  --color-electric: #2563EB;
+  --color-sky: #60A5FA;
+  --color-ivory: #F8FAFC;
+  --color-gold: #FCD34D;
+
+  --color-bg: #0A1F44;
+  --color-bg-elevated: #102D5C;
+  --color-surface: #163A75;
+  --color-border: #1E3A8A;
+  --color-fg: #F8FAFC;
+  --color-fg-muted: #93C5FD;
+  --color-accent: #FCD34D;
+  --color-accent-2: #60A5FA;
+  --color-accent-3: #2563EB;
+
+  --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Playfair Display', 'Cairo', Georgia, serif;
 }
 
 * {
@@ -21,12 +31,24 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--color-bg);
+  background:
+    linear-gradient(
+      180deg,
+      #0A1F44 0%,
+      #1E3A8A 35%,
+      #2563EB 75%,
+      #1E3A8A 100%
+    );
+  background-attachment: fixed;
   color: var(--color-fg);
   font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-heading);
 }
 
 ::selection {
@@ -114,56 +136,63 @@ body {
 }
 
 .gradient-text {
-  background: linear-gradient(120deg, var(--color-accent) 0%, var(--color-accent-2) 50%, var(--color-accent-3) 100%);
+  background: linear-gradient(120deg, #FCD34D 0%, #FFFFFF 50%, #FCD34D 100%);
+  background-size: 200% 100%;
+  animation: shineGold 5s linear infinite;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
 
+@keyframes shineGold {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 .gradient-border {
   position: relative;
-  background: var(--color-surface);
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  transition: border-color 0.3s ease, transform 0.3s ease;
 }
-.gradient-border::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 14px;
-  padding: 1px;
-  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-2) 50%, var(--color-accent-3) 100%);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0.3;
-  transition: opacity 0.3s ease;
-}
-.gradient-border:hover::before {
-  opacity: 1;
+.gradient-border:hover {
+  border-color: rgba(252, 211, 77, 0.4);
 }
 
 .glass {
-  background: rgba(26, 34, 54, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(10, 31, 68, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
 .grid-pattern {
   background-image:
-    linear-gradient(to right, rgba(245, 177, 58, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(245, 177, 58, 0.04) 1px, transparent 1px);
-  background-size: 64px 64px;
+    linear-gradient(to right, rgba(96, 165, 250, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(96, 165, 250, 0.05) 1px, transparent 1px);
+  background-size: 80px 80px;
 }
 
 .glow-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
+  filter: blur(100px);
   opacity: 0.35;
   pointer-events: none;
+}
+
+/* Decorative card-suit watermark — used as background accent on big sections */
+.suit-watermark {
+  position: absolute;
+  user-select: none;
+  pointer-events: none;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  opacity: 0.05;
+  color: #FFFFFF;
 }
 
 .section-fade {
@@ -176,16 +205,17 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  border-radius: 9999px;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
-  color: var(--color-bg);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 0.875rem 1.75rem;
+  font-weight: 700;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #FCD34D, #F59E0B);
+  color: #0A1F44;
+  box-shadow: 0 8px 32px rgba(252, 211, 77, 0.4);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 36px -10px rgba(245, 177, 58, 0.5);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 16px 40px rgba(252, 211, 77, 0.55);
 }
 
 .btn-ghost {
@@ -193,17 +223,19 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 1.75rem;
   font-weight: 600;
-  border-radius: 9999px;
-  border: 1px solid var(--color-border);
-  background: transparent;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
   color: var(--color-fg);
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 .btn-ghost:hover {
-  background: var(--color-surface);
-  border-color: var(--color-accent);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(252, 211, 77, 0.5);
+  transform: translateY(-2px);
 }
 
 .timeline-line {
@@ -219,11 +251,12 @@ body {
 .tag {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
+  padding: 0.3rem 0.8rem;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   border-radius: 9999px;
-  background: rgba(245, 177, 58, 0.1);
-  color: var(--color-accent);
-  border: 1px solid rgba(245, 177, 58, 0.25);
+  background: rgba(252, 211, 77, 0.12);
+  color: #FCD34D;
+  border: 1px solid rgba(252, 211, 77, 0.3);
+  letter-spacing: 0.02em;
 }
