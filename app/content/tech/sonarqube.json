@@ -1,0 +1,714 @@
+{
+ "slug": "sonarqube",
+ "name": "SonarQube",
+ "category": "Securite DevSecOps",
+ "role": "SonarQube est la plateforme d'inspection continue de la qualite et de la securite du code (SAST). Elle analyse 30+ langages pour detecter bugs, vulnerabilites, hotspots de securite, code smells et mesurer la couverture et la duplication. Le concept de Quality Gate, applique au code nouveau (Clean as You Code), bloque la livraison tant que les criteres ne sont pas remplis — un controle qualite/securite incontournable des pipelines bancaires.",
+ "commands": [
+  {
+   "cmd": "sonar-scanner -Dsonar.projectKey=app -Dsonar.host.url=URL",
+   "desc": "Lancer une analyse"
+  },
+  {
+   "cmd": "mvn sonar:sonar -Dsonar.token=$T",
+   "desc": "Analyse via Maven"
+  },
+  {
+   "cmd": "./gradlew sonar",
+   "desc": "Analyse via Gradle"
+  },
+  {
+   "cmd": "sonar.qualitygate.wait=true",
+   "desc": "Bloquer le pipeline sur le gate"
+  },
+  {
+   "cmd": "docker run -d -p 9000:9000 sonarqube:lts-community",
+   "desc": "Lancer le serveur"
+  },
+  {
+   "cmd": "curl -u T: '/api/qualitygates/project_status?projectKey=app'",
+   "desc": "Statut du Quality Gate"
+  },
+  {
+   "cmd": "sonar.coverage.exclusions=**/test/**",
+   "desc": "Exclusions de couverture"
+  },
+  {
+   "cmd": "sonar.pullrequest.key=$PR",
+   "desc": "Analyse de Pull Request (decoration)"
+  },
+  {
+   "cmd": "sonar.exclusions=**/generated/**",
+   "desc": "Exclure du code genere"
+  },
+  {
+   "cmd": "curl '/api/issues/search?severities=BLOCKER'",
+   "desc": "Lister les issues critiques"
+  },
+  {
+   "cmd": "curl '/api/measures/component?metricKeys=coverage'",
+   "desc": "Metriques projet"
+  },
+  {
+   "cmd": "sonar.branch.name=$BRANCH",
+   "desc": "Analyse multi-branches"
+  }
+ ],
+ "articles": [
+  {
+   "slug": "fondamentaux",
+   "title": "SonarQube : fondamentaux et architecture",
+   "subtitle": "Le modele mental indispensable pour exploiter SonarQube sans le subir",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article pose les fondamentaux et l'architecture de SonarQube. Comprendre ces mecanismes est le prerequis pour l'exploiter de maniere fiable, et non comme une boite noire."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait SonarQube ?"
+    },
+    {
+     "type": "p",
+     "text": "SonarQube est la plateforme d'inspection continue de la qualite et de la securite du code (SAST). Elle analyse 30+ langages pour detecter bugs, vulnerabilites, hotspots de securite, code smells et mesurer la couverture et la duplication. Le concept de Quality Gate, applique au code nouveau (Clean as You Code), bloque la livraison tant que les criteres ne sont pas remplis — un controle qualite/securite incontournable des pipelines bancaires."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a SonarQube, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Concepts et architecture"
+    },
+    {
+     "type": "p",
+     "text": "Avant toute mise en oeuvre, il faut un modele mental correct de SonarQube. Les points suivants constituent la base sans laquelle l'outil reste une boite noire fragile."
+    },
+    {
+     "type": "p",
+     "text": "SAST multi-langage : bugs, vulnerabilites, security hotspots, code smells, duplication, couverture. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Quality Gate : ensemble de conditions (gate par defaut 'Sonar way') qui passe/echoue une analyse. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Clean as You Code : criteres appliques au New Code (depuis une reference) — la dette legacy n'est pas bloquante. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Decoration de Pull Request : feedback inline directement dans GitHub/GitLab. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "La couverture vient des rapports de tests (JaCoCo/lcov) importes, Sonar ne l'execute pas. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Profils de qualite (regles activees) et portails de gouvernance multi-projets. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "h2",
+     "text": "Pieges courants et depannage"
+    },
+    {
+     "type": "p",
+     "text": "La plupart des incidents proviennent d'un petit nombre d'erreurs recurrentes. Les reconnaitre tot fait gagner un temps considerable."
+    },
+    {
+     "type": "p",
+     "text": "Gate sur tout le code (legacy) : bloque tout — cibler le New Code. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Couverture non importee : metrique a 0. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "vm.max_map_count non regle : ES/Sonar ne demarre pas. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "qualitygate.wait absent : analyse non bloquante (gate cosmetique). C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Hotspots ignores : faux sentiment de securite. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Integre aux pipelines bancaires (HPS PowerCARD, conformite PCI DSS), ce controle a permis de bloquer en amont vulnerabilites et regressions, renforcant la gestion des secrets et le durcissement (RBAC). C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Clean as You Code : gate sur le New Code."
+    },
+    {
+     "type": "li",
+     "text": "qualitygate.wait=true bloquant + decoration de PR."
+    },
+    {
+     "type": "li",
+     "text": "Couverture importee (JaCoCo/lcov), exclusions justifiees."
+    },
+    {
+     "type": "li",
+     "text": "Tokens scopes/rotates, TLS/SSO/RBAC."
+    },
+    {
+     "type": "li",
+     "text": "Hotspots revus, tendances suivies en KPI."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser SonarQube ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, SonarQube devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "installation",
+   "title": "Installer et configurer SonarQube (approche industrialisee)",
+   "subtitle": "Une mise en place reproductible, versionnee et prete pour la production",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article detaille l'installation et la configuration de SonarQube selon une approche industrialisee : reproductible, versionnee et prete pour la production des le depart."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait SonarQube ?"
+    },
+    {
+     "type": "p",
+     "text": "SonarQube est la plateforme d'inspection continue de la qualite et de la securite du code (SAST). Elle analyse 30+ langages pour detecter bugs, vulnerabilites, hotspots de securite, code smells et mesurer la couverture et la duplication. Le concept de Quality Gate, applique au code nouveau (Clean as You Code), bloque la livraison tant que les criteres ne sont pas remplis — un controle qualite/securite incontournable des pipelines bancaires."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a SonarQube, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Installation et configuration"
+    },
+    {
+     "type": "p",
+     "text": "Une installation 'qui marche' ne suffit pas : viser des le depart une mise en place reproductible, versionnee et conforme aux contraintes de production."
+    },
+    {
+     "type": "p",
+     "text": "Serveur + base externe (Postgres) ; Elasticsearch embarque -> vm.max_map_count regle. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "LTS, stockage persistant, reverse proxy TLS ; auth SSO/LDAP. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Profils de qualite et Quality Gate adaptes (centres sur le New Code). Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Tokens d'analyse par projet (secret CI), pas d'identifiants partages. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Plugins langage requis installes et figes. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "h2",
+     "text": "Concepts et architecture"
+    },
+    {
+     "type": "p",
+     "text": "Avant toute mise en oeuvre, il faut un modele mental correct de SonarQube. Les points suivants constituent la base sans laquelle l'outil reste une boite noire fragile."
+    },
+    {
+     "type": "p",
+     "text": "SAST multi-langage : bugs, vulnerabilites, security hotspots, code smells, duplication, couverture. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Quality Gate : ensemble de conditions (gate par defaut 'Sonar way') qui passe/echoue une analyse. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Clean as You Code : criteres appliques au New Code (depuis une reference) — la dette legacy n'est pas bloquante. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Decoration de Pull Request : feedback inline directement dans GitHub/GitLab. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "h2",
+     "text": "Resume des commandes essentielles"
+    },
+    {
+     "type": "p",
+     "text": "Aide-memoire operationnel des commandes et configurations les plus utilisees au quotidien. Chaque entree indique la commande puis son role."
+    },
+    {
+     "type": "cmds",
+     "items": [
+      {
+       "cmd": "sonar-scanner -Dsonar.projectKey=app -Dsonar.host.url=URL",
+       "desc": "Lancer une analyse"
+      },
+      {
+       "cmd": "mvn sonar:sonar -Dsonar.token=$T",
+       "desc": "Analyse via Maven"
+      },
+      {
+       "cmd": "./gradlew sonar",
+       "desc": "Analyse via Gradle"
+      },
+      {
+       "cmd": "sonar.qualitygate.wait=true",
+       "desc": "Bloquer le pipeline sur le gate"
+      },
+      {
+       "cmd": "docker run -d -p 9000:9000 sonarqube:lts-community",
+       "desc": "Lancer le serveur"
+      },
+      {
+       "cmd": "curl -u T: '/api/qualitygates/project_status?projectKey=app'",
+       "desc": "Statut du Quality Gate"
+      },
+      {
+       "cmd": "sonar.coverage.exclusions=**/test/**",
+       "desc": "Exclusions de couverture"
+      },
+      {
+       "cmd": "sonar.pullrequest.key=$PR",
+       "desc": "Analyse de Pull Request (decoration)"
+      },
+      {
+       "cmd": "sonar.exclusions=**/generated/**",
+       "desc": "Exclure du code genere"
+      },
+      {
+       "cmd": "curl '/api/issues/search?severities=BLOCKER'",
+       "desc": "Lister les issues critiques"
+      },
+      {
+       "cmd": "curl '/api/measures/component?metricKeys=coverage'",
+       "desc": "Metriques projet"
+      },
+      {
+       "cmd": "sonar.branch.name=$BRANCH",
+       "desc": "Analyse multi-branches"
+      }
+     ]
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Integre aux pipelines bancaires (HPS PowerCARD, conformite PCI DSS), ce controle a permis de bloquer en amont vulnerabilites et regressions, renforcant la gestion des secrets et le durcissement (RBAC). Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Clean as You Code : gate sur le New Code."
+    },
+    {
+     "type": "li",
+     "text": "qualitygate.wait=true bloquant + decoration de PR."
+    },
+    {
+     "type": "li",
+     "text": "Couverture importee (JaCoCo/lcov), exclusions justifiees."
+    },
+    {
+     "type": "li",
+     "text": "Tokens scopes/rotates, TLS/SSO/RBAC."
+    },
+    {
+     "type": "li",
+     "text": "Hotspots revus, tendances suivies en KPI."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser SonarQube ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, SonarQube devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "cicd",
+   "title": "SonarQube dans une chaine CI/CD",
+   "subtitle": "Ou SonarQube intervient dans le pipeline, et comment le rendre fiable",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article montre comment integrer SonarQube dans une chaine CI/CD : ou il intervient, comment le rendre fiable, et comment il accelere et securise la livraison."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait SonarQube ?"
+    },
+    {
+     "type": "p",
+     "text": "SonarQube est la plateforme d'inspection continue de la qualite et de la securite du code (SAST). Elle analyse 30+ langages pour detecter bugs, vulnerabilites, hotspots de securite, code smells et mesurer la couverture et la duplication. Le concept de Quality Gate, applique au code nouveau (Clean as You Code), bloque la livraison tant que les criteres ne sont pas remplis — un controle qualite/securite incontournable des pipelines bancaires."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a SonarQube, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Integration CI/CD et automatisation"
+    },
+    {
+     "type": "p",
+     "text": "L'interet de SonarQube se revele pleinement une fois integre a un pipeline automatise. Voici comment l'y inserer de maniere fiable."
+    },
+    {
+     "type": "p",
+     "text": "Etape obligatoire post-tests : import couverture -> analyse -> sonar.qualitygate.wait=true (gate bloquante). Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Analyse de PR avec decoration : pas de merge si le gate du New Code echoue. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Token en secret CI ; cache du scanner pour la vitesse. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Echec du pipeline = retour developpeur immediat (shift-left securite/qualite). Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Tendances qualite suivies comme KPI (Grafana via API). En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "h2",
+     "text": "Bonnes pratiques eprouvees"
+    },
+    {
+     "type": "p",
+     "text": "Ces principes condensent l'experience operationnelle : ils ne sont pas theoriques mais issus de ce qui evite reellement les incidents."
+    },
+    {
+     "type": "p",
+     "text": "Clean as You Code : gate sur le New Code. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "qualitygate.wait=true bloquant + decoration de PR. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Couverture importee (JaCoCo/lcov), exclusions justifiees. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Tokens scopes/rotates, TLS/SSO/RBAC. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Hotspots revus, tendances suivies en KPI. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Integre aux pipelines bancaires (HPS PowerCARD, conformite PCI DSS), ce controle a permis de bloquer en amont vulnerabilites et regressions, renforcant la gestion des secrets et le durcissement (RBAC). La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Clean as You Code : gate sur le New Code."
+    },
+    {
+     "type": "li",
+     "text": "qualitygate.wait=true bloquant + decoration de PR."
+    },
+    {
+     "type": "li",
+     "text": "Couverture importee (JaCoCo/lcov), exclusions justifiees."
+    },
+    {
+     "type": "li",
+     "text": "Tokens scopes/rotates, TLS/SSO/RBAC."
+    },
+    {
+     "type": "li",
+     "text": "Hotspots revus, tendances suivies en KPI."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser SonarQube ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, SonarQube devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "production",
+   "title": "SonarQube en production : scalabilite et securite",
+   "subtitle": "Haute disponibilite, mise a l'echelle et durcissement",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article traite de SonarQube en production : scalabilite, haute disponibilite et securite, avec les exigences propres aux environnements reglementes."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait SonarQube ?"
+    },
+    {
+     "type": "p",
+     "text": "SonarQube est la plateforme d'inspection continue de la qualite et de la securite du code (SAST). Elle analyse 30+ langages pour detecter bugs, vulnerabilites, hotspots de securite, code smells et mesurer la couverture et la duplication. Le concept de Quality Gate, applique au code nouveau (Clean as You Code), bloque la livraison tant que les criteres ne sont pas remplis — un controle qualite/securite incontournable des pipelines bancaires."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a SonarQube, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Production, scalabilite et fiabilite"
+    },
+    {
+     "type": "p",
+     "text": "En production, les exigences changent d'echelle : disponibilite, charge, reprise. Les principes ci-dessous evitent les mauvaises surprises."
+    },
+    {
+     "type": "p",
+     "text": "Serveur dimensionne (ES/heap) ; sauvegardes DB testees. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Gouvernance multi-projets (portfolios) et profils homogenes. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Retention/menage des analyses pour la performance. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Disponibilite : le gate est sur le chemin critique de livraison. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Suivi de la dette et du taux de remediation comme indicateurs. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "h2",
+     "text": "Securite et durcissement"
+    },
+    {
+     "type": "p",
+     "text": "La securite n'est pas une option ajoutee a la fin : elle se conçoit des l'architecture, surtout en environnement reglemente."
+    },
+    {
+     "type": "p",
+     "text": "Detection SAST + hotspots a revoir manuellement (revue de securite tracee). Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Tokens scopes par projet, rotation ; pas d'admin partage. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "TLS + SSO/LDAP ; RBAC par projet. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Integration de la conformite (regles PCI/OWASP activees). Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Audit des changements de Quality Gate/profil. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Integre aux pipelines bancaires (HPS PowerCARD, conformite PCI DSS), ce controle a permis de bloquer en amont vulnerabilites et regressions, renforcant la gestion des secrets et le durcissement (RBAC). La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Clean as You Code : gate sur le New Code."
+    },
+    {
+     "type": "li",
+     "text": "qualitygate.wait=true bloquant + decoration de PR."
+    },
+    {
+     "type": "li",
+     "text": "Couverture importee (JaCoCo/lcov), exclusions justifiees."
+    },
+    {
+     "type": "li",
+     "text": "Tokens scopes/rotates, TLS/SSO/RBAC."
+    },
+    {
+     "type": "li",
+     "text": "Hotspots revus, tendances suivies en KPI."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser SonarQube ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, SonarQube devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "depannage",
+   "title": "SonarQube : depannage et bonnes pratiques",
+   "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article rassemble le depannage et les bonnes pratiques de SonarQube : les pieges recurrents, leurs symptomes, et les principes qui evitent la dette operationnelle."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait SonarQube ?"
+    },
+    {
+     "type": "p",
+     "text": "SonarQube est la plateforme d'inspection continue de la qualite et de la securite du code (SAST). Elle analyse 30+ langages pour detecter bugs, vulnerabilites, hotspots de securite, code smells et mesurer la couverture et la duplication. Le concept de Quality Gate, applique au code nouveau (Clean as You Code), bloque la livraison tant que les criteres ne sont pas remplis — un controle qualite/securite incontournable des pipelines bancaires."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a SonarQube, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Pieges courants et depannage"
+    },
+    {
+     "type": "p",
+     "text": "La plupart des incidents proviennent d'un petit nombre d'erreurs recurrentes. Les reconnaitre tot fait gagner un temps considerable."
+    },
+    {
+     "type": "p",
+     "text": "Gate sur tout le code (legacy) : bloque tout — cibler le New Code. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Couverture non importee : metrique a 0. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "vm.max_map_count non regle : ES/Sonar ne demarre pas. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "qualitygate.wait absent : analyse non bloquante (gate cosmetique). Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Hotspots ignores : faux sentiment de securite. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "h2",
+     "text": "Bonnes pratiques eprouvees"
+    },
+    {
+     "type": "p",
+     "text": "Ces principes condensent l'experience operationnelle : ils ne sont pas theoriques mais issus de ce qui evite reellement les incidents."
+    },
+    {
+     "type": "p",
+     "text": "Clean as You Code : gate sur le New Code. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "qualitygate.wait=true bloquant + decoration de PR. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Couverture importee (JaCoCo/lcov), exclusions justifiees. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Tokens scopes/rotates, TLS/SSO/RBAC. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Hotspots revus, tendances suivies en KPI. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Integre aux pipelines bancaires (HPS PowerCARD, conformite PCI DSS), ce controle a permis de bloquer en amont vulnerabilites et regressions, renforcant la gestion des secrets et le durcissement (RBAC). La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Clean as You Code : gate sur le New Code."
+    },
+    {
+     "type": "li",
+     "text": "qualitygate.wait=true bloquant + decoration de PR."
+    },
+    {
+     "type": "li",
+     "text": "Couverture importee (JaCoCo/lcov), exclusions justifiees."
+    },
+    {
+     "type": "li",
+     "text": "Tokens scopes/rotates, TLS/SSO/RBAC."
+    },
+    {
+     "type": "li",
+     "text": "Hotspots revus, tendances suivies en KPI."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser SonarQube ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, SonarQube devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,714 @@
+{
+ "slug": "harbor",
+ "name": "Harbor",
+ "category": "Conteneurisation",
+ "role": "Harbor est un registre de conteneurs open-source (projet CNCF gradue) de niveau entreprise. Il stocke et distribue images OCI et charts Helm avec controle d'acces RBAC par projet, scan de vulnerabilites integre (Trivy), signature et politique d'admission (Cosign/Notation), replication multi-registres, retention et quotas. C'est la piece centrale d'une chaine d'approvisionnement logicielle securisee : seules des images scannees, signees et conformes sont promues vers la production bancaire.",
+ "commands": [
+  {
+   "cmd": "docker login harbor.example.com",
+   "desc": "S'authentifier au registre"
+  },
+  {
+   "cmd": "docker tag app:1.0 harbor.example.com/team/app:1.0",
+   "desc": "Taguer pour Harbor"
+  },
+  {
+   "cmd": "docker push harbor.example.com/team/app:1.0",
+   "desc": "Publier une image"
+  },
+  {
+   "cmd": "helm registry login harbor.example.com",
+   "desc": "Auth pour charts OCI"
+  },
+  {
+   "cmd": "helm push app-1.0.0.tgz oci://harbor.example.com/charts",
+   "desc": "Publier un chart"
+  },
+  {
+   "cmd": "docker pull harbor.example.com/team/app@sha256:...",
+   "desc": "Tirer par digest immuable"
+  },
+  {
+   "cmd": "curl -u u:p https://harbor/api/v2.0/projects",
+   "desc": "API : lister les projets"
+  },
+  {
+   "cmd": "curl .../api/v2.0/projects/ID/repositories",
+   "desc": "Inventaire des depots"
+  },
+  {
+   "cmd": "trivy image harbor.example.com/team/app:1.0",
+   "desc": "Scan complementaire local"
+  },
+  {
+   "cmd": "cosign sign --key k harbor.example.com/team/app:1.0",
+   "desc": "Signer une image"
+  },
+  {
+   "cmd": "cosign verify --key k harbor.example.com/team/app:1.0",
+   "desc": "Verifier la signature"
+  },
+  {
+   "cmd": "curl .../api/v2.0/projects/ID/scanner",
+   "desc": "Scanner configure du projet"
+  }
+ ],
+ "articles": [
+  {
+   "slug": "fondamentaux",
+   "title": "Harbor : fondamentaux et architecture",
+   "subtitle": "Le modele mental indispensable pour exploiter Harbor sans le subir",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article pose les fondamentaux et l'architecture de Harbor. Comprendre ces mecanismes est le prerequis pour l'exploiter de maniere fiable, et non comme une boite noire."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait Harbor ?"
+    },
+    {
+     "type": "p",
+     "text": "Harbor est un registre de conteneurs open-source (projet CNCF gradue) de niveau entreprise. Il stocke et distribue images OCI et charts Helm avec controle d'acces RBAC par projet, scan de vulnerabilites integre (Trivy), signature et politique d'admission (Cosign/Notation), replication multi-registres, retention et quotas. C'est la piece centrale d'une chaine d'approvisionnement logicielle securisee : seules des images scannees, signees et conformes sont promues vers la production bancaire."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a Harbor, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Concepts et architecture"
+    },
+    {
+     "type": "p",
+     "text": "Avant toute mise en oeuvre, il faut un modele mental correct de Harbor. Les points suivants constituent la base sans laquelle l'outil reste une boite noire fragile."
+    },
+    {
+     "type": "p",
+     "text": "Multi-tenant par Projets : RBAC (admin/maintainer/developer/guest), quotas et politiques par projet. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Scan de vulnerabilites integre (Trivy) automatique au push, avec blocage selon severite (CVE policy). Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Signature et content trust (Cosign/Notation) + politique d'admission : n'autoriser que des images signees. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Replication declarative entre registres (geo, DR, prod-pull) selon des filtres et un planning. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Retention et immutabilite des tags pour eviter l'ecrasement d'artefacts livres. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Proxy cache (pull-through) de registres publics pour fiabiliser et accelerer les builds CI. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "h2",
+     "text": "Pieges courants et depannage"
+    },
+    {
+     "type": "p",
+     "text": "La plupart des incidents proviennent d'un petit nombre d'erreurs recurrentes. Les reconnaitre tot fait gagner un temps considerable."
+    },
+    {
+     "type": "p",
+     "text": "Stockage local sature : externaliser sur S3 et appliquer retention/quotas. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Tags mutables ecrasant des livraisons : activer l'immutabilite. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Images vulnerables promues car CVE policy non bloquante : durcir la politique. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Robot accounts trop permissifs : restreindre le scope par projet. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Registre non HA : point de defaillance unique des deploiements. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Pour les microservices bancaires haute disponibilite (Worldline / Societe Generale Maroc), la containerisation et l'orchestration Kubernetes/Helm ont standardise les deploiements et fiabilise des plateformes traitant des millions de transactions par jour. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Projets RBAC, robots CI a portee minimale."
+    },
+    {
+     "type": "li",
+     "text": "Scan automatique + CVE policy bloquante + tags immuables."
+    },
+    {
+     "type": "li",
+     "text": "Signature Cosign + admission policy cote Kubernetes."
+    },
+    {
+     "type": "li",
+     "text": "Replication DR + retention/quotas + stockage objet externe."
+    },
+    {
+     "type": "li",
+     "text": "Proxy cache pour des builds CI rapides et resilients."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser Harbor ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, Harbor devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "installation",
+   "title": "Installer et configurer Harbor (approche industrialisee)",
+   "subtitle": "Une mise en place reproductible, versionnee et prete pour la production",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article detaille l'installation et la configuration de Harbor selon une approche industrialisee : reproductible, versionnee et prete pour la production des le depart."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait Harbor ?"
+    },
+    {
+     "type": "p",
+     "text": "Harbor est un registre de conteneurs open-source (projet CNCF gradue) de niveau entreprise. Il stocke et distribue images OCI et charts Helm avec controle d'acces RBAC par projet, scan de vulnerabilites integre (Trivy), signature et politique d'admission (Cosign/Notation), replication multi-registres, retention et quotas. C'est la piece centrale d'une chaine d'approvisionnement logicielle securisee : seules des images scannees, signees et conformes sont promues vers la production bancaire."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a Harbor, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Installation et configuration"
+    },
+    {
+     "type": "p",
+     "text": "Une installation 'qui marche' ne suffit pas : viser des le depart une mise en place reproductible, versionnee et conforme aux contraintes de production."
+    },
+    {
+     "type": "p",
+     "text": "Deploiement via Harbor Helm chart sur Kubernetes (recommande) ou docker-compose pour PoC. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "TLS obligatoire, base externe (Postgres) et stockage objet (S3) pour la production. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Integrer l'authentification entreprise (OIDC/LDAP) et structurer les projets par equipe/environnement. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Configurer le scanner Trivy, les CVE allowlists et les regles d'immutabilite des tags. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Mettre en place les regles de replication (DR/edge) et de retention des le depart. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "h2",
+     "text": "Concepts et architecture"
+    },
+    {
+     "type": "p",
+     "text": "Avant toute mise en oeuvre, il faut un modele mental correct de Harbor. Les points suivants constituent la base sans laquelle l'outil reste une boite noire fragile."
+    },
+    {
+     "type": "p",
+     "text": "Multi-tenant par Projets : RBAC (admin/maintainer/developer/guest), quotas et politiques par projet. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Scan de vulnerabilites integre (Trivy) automatique au push, avec blocage selon severite (CVE policy). Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Signature et content trust (Cosign/Notation) + politique d'admission : n'autoriser que des images signees. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Replication declarative entre registres (geo, DR, prod-pull) selon des filtres et un planning. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "h2",
+     "text": "Resume des commandes essentielles"
+    },
+    {
+     "type": "p",
+     "text": "Aide-memoire operationnel des commandes et configurations les plus utilisees au quotidien. Chaque entree indique la commande puis son role."
+    },
+    {
+     "type": "cmds",
+     "items": [
+      {
+       "cmd": "docker login harbor.example.com",
+       "desc": "S'authentifier au registre"
+      },
+      {
+       "cmd": "docker tag app:1.0 harbor.example.com/team/app:1.0",
+       "desc": "Taguer pour Harbor"
+      },
+      {
+       "cmd": "docker push harbor.example.com/team/app:1.0",
+       "desc": "Publier une image"
+      },
+      {
+       "cmd": "helm registry login harbor.example.com",
+       "desc": "Auth pour charts OCI"
+      },
+      {
+       "cmd": "helm push app-1.0.0.tgz oci://harbor.example.com/charts",
+       "desc": "Publier un chart"
+      },
+      {
+       "cmd": "docker pull harbor.example.com/team/app@sha256:...",
+       "desc": "Tirer par digest immuable"
+      },
+      {
+       "cmd": "curl -u u:p https://harbor/api/v2.0/projects",
+       "desc": "API : lister les projets"
+      },
+      {
+       "cmd": "curl .../api/v2.0/projects/ID/repositories",
+       "desc": "Inventaire des depots"
+      },
+      {
+       "cmd": "trivy image harbor.example.com/team/app:1.0",
+       "desc": "Scan complementaire local"
+      },
+      {
+       "cmd": "cosign sign --key k harbor.example.com/team/app:1.0",
+       "desc": "Signer une image"
+      },
+      {
+       "cmd": "cosign verify --key k harbor.example.com/team/app:1.0",
+       "desc": "Verifier la signature"
+      },
+      {
+       "cmd": "curl .../api/v2.0/projects/ID/scanner",
+       "desc": "Scanner configure du projet"
+      }
+     ]
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Pour les microservices bancaires haute disponibilite (Worldline / Societe Generale Maroc), la containerisation et l'orchestration Kubernetes/Helm ont standardise les deploiements et fiabilise des plateformes traitant des millions de transactions par jour. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Projets RBAC, robots CI a portee minimale."
+    },
+    {
+     "type": "li",
+     "text": "Scan automatique + CVE policy bloquante + tags immuables."
+    },
+    {
+     "type": "li",
+     "text": "Signature Cosign + admission policy cote Kubernetes."
+    },
+    {
+     "type": "li",
+     "text": "Replication DR + retention/quotas + stockage objet externe."
+    },
+    {
+     "type": "li",
+     "text": "Proxy cache pour des builds CI rapides et resilients."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser Harbor ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, Harbor devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "cicd",
+   "title": "Harbor dans une chaine CI/CD",
+   "subtitle": "Ou Harbor intervient dans le pipeline, et comment le rendre fiable",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article montre comment integrer Harbor dans une chaine CI/CD : ou il intervient, comment le rendre fiable, et comment il accelere et securise la livraison."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait Harbor ?"
+    },
+    {
+     "type": "p",
+     "text": "Harbor est un registre de conteneurs open-source (projet CNCF gradue) de niveau entreprise. Il stocke et distribue images OCI et charts Helm avec controle d'acces RBAC par projet, scan de vulnerabilites integre (Trivy), signature et politique d'admission (Cosign/Notation), replication multi-registres, retention et quotas. C'est la piece centrale d'une chaine d'approvisionnement logicielle securisee : seules des images scannees, signees et conformes sont promues vers la production bancaire."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a Harbor, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Integration CI/CD et automatisation"
+    },
+    {
+     "type": "p",
+     "text": "L'interet de Harbor se revele pleinement une fois integre a un pipeline automatise. Voici comment l'y inserer de maniere fiable."
+    },
+    {
+     "type": "p",
+     "text": "Le CI pousse l'image ; Harbor la scanne automatiquement et bloque la promotion sur CVE critique. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Promotion par digest entre projets (staging -> prod) via replication ou retag controle. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Cosign sign en CI puis verify a l'admission Kubernetes : chaine de confiance bout en bout. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Proxy cache Harbor comme registre amont des runners CI : builds rapides et resilients aux pannes externes. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Webhooks Harbor declenchant des actions (notification, redeploiement) sur push/scan. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "h2",
+     "text": "Bonnes pratiques eprouvees"
+    },
+    {
+     "type": "p",
+     "text": "Ces principes condensent l'experience operationnelle : ils ne sont pas theoriques mais issus de ce qui evite reellement les incidents."
+    },
+    {
+     "type": "p",
+     "text": "Projets RBAC, robots CI a portee minimale. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Scan automatique + CVE policy bloquante + tags immuables. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Signature Cosign + admission policy cote Kubernetes. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Replication DR + retention/quotas + stockage objet externe. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Proxy cache pour des builds CI rapides et resilients. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Pour les microservices bancaires haute disponibilite (Worldline / Societe Generale Maroc), la containerisation et l'orchestration Kubernetes/Helm ont standardise les deploiements et fiabilise des plateformes traitant des millions de transactions par jour. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Projets RBAC, robots CI a portee minimale."
+    },
+    {
+     "type": "li",
+     "text": "Scan automatique + CVE policy bloquante + tags immuables."
+    },
+    {
+     "type": "li",
+     "text": "Signature Cosign + admission policy cote Kubernetes."
+    },
+    {
+     "type": "li",
+     "text": "Replication DR + retention/quotas + stockage objet externe."
+    },
+    {
+     "type": "li",
+     "text": "Proxy cache pour des builds CI rapides et resilients."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser Harbor ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, Harbor devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "production",
+   "title": "Harbor en production : scalabilite et securite",
+   "subtitle": "Haute disponibilite, mise a l'echelle et durcissement",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article traite de Harbor en production : scalabilite, haute disponibilite et securite, avec les exigences propres aux environnements reglementes."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait Harbor ?"
+    },
+    {
+     "type": "p",
+     "text": "Harbor est un registre de conteneurs open-source (projet CNCF gradue) de niveau entreprise. Il stocke et distribue images OCI et charts Helm avec controle d'acces RBAC par projet, scan de vulnerabilites integre (Trivy), signature et politique d'admission (Cosign/Notation), replication multi-registres, retention et quotas. C'est la piece centrale d'une chaine d'approvisionnement logicielle securisee : seules des images scannees, signees et conformes sont promues vers la production bancaire."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a Harbor, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Production, scalabilite et fiabilite"
+    },
+    {
+     "type": "p",
+     "text": "En production, les exigences changent d'echelle : disponibilite, charge, reprise. Les principes ci-dessous evitent les mauvaises surprises."
+    },
+    {
+     "type": "p",
+     "text": "Replication geo pour DR et pull local par cluster (latence/resilience). C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Retention/quotas evitant la saturation du stockage objet. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Stockage S3 + Postgres externes pour la scalabilite et la sauvegarde. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Disponibilite assuree car critique : tout deploiement depend du registre. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Observabilite (metriques exposees) et alerting sur echecs de scan/replication. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "h2",
+     "text": "Securite et durcissement"
+    },
+    {
+     "type": "p",
+     "text": "La securite n'est pas une option ajoutee a la fin : elle se conçoit des l'architecture, surtout en environnement reglemente."
+    },
+    {
+     "type": "p",
+     "text": "RBAC par projet au moindre privilege ; robots accounts a portee limitee pour le CI. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Blocage de pull des images vulnerables (CVE policy) et tags immuables. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Signature obligatoire (Cosign) + admission policy cote cluster. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "TLS partout, OIDC/LDAP, audit logs — conformite PCI DSS de la supply chain. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Proxy cache reduisant la dependance a des registres publics non maitrises. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Pour les microservices bancaires haute disponibilite (Worldline / Societe Generale Maroc), la containerisation et l'orchestration Kubernetes/Helm ont standardise les deploiements et fiabilise des plateformes traitant des millions de transactions par jour. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Projets RBAC, robots CI a portee minimale."
+    },
+    {
+     "type": "li",
+     "text": "Scan automatique + CVE policy bloquante + tags immuables."
+    },
+    {
+     "type": "li",
+     "text": "Signature Cosign + admission policy cote Kubernetes."
+    },
+    {
+     "type": "li",
+     "text": "Replication DR + retention/quotas + stockage objet externe."
+    },
+    {
+     "type": "li",
+     "text": "Proxy cache pour des builds CI rapides et resilients."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser Harbor ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, Harbor devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "depannage",
+   "title": "Harbor : depannage et bonnes pratiques",
+   "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article rassemble le depannage et les bonnes pratiques de Harbor : les pieges recurrents, leurs symptomes, et les principes qui evitent la dette operationnelle."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait Harbor ?"
+    },
+    {
+     "type": "p",
+     "text": "Harbor est un registre de conteneurs open-source (projet CNCF gradue) de niveau entreprise. Il stocke et distribue images OCI et charts Helm avec controle d'acces RBAC par projet, scan de vulnerabilites integre (Trivy), signature et politique d'admission (Cosign/Notation), replication multi-registres, retention et quotas. C'est la piece centrale d'une chaine d'approvisionnement logicielle securisee : seules des images scannees, signees et conformes sont promues vers la production bancaire."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a Harbor, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Pieges courants et depannage"
+    },
+    {
+     "type": "p",
+     "text": "La plupart des incidents proviennent d'un petit nombre d'erreurs recurrentes. Les reconnaitre tot fait gagner un temps considerable."
+    },
+    {
+     "type": "p",
+     "text": "Stockage local sature : externaliser sur S3 et appliquer retention/quotas. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Tags mutables ecrasant des livraisons : activer l'immutabilite. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Images vulnerables promues car CVE policy non bloquante : durcir la politique. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Robot accounts trop permissifs : restreindre le scope par projet. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Registre non HA : point de defaillance unique des deploiements. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "h2",
+     "text": "Bonnes pratiques eprouvees"
+    },
+    {
+     "type": "p",
+     "text": "Ces principes condensent l'experience operationnelle : ils ne sont pas theoriques mais issus de ce qui evite reellement les incidents."
+    },
+    {
+     "type": "p",
+     "text": "Projets RBAC, robots CI a portee minimale. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Scan automatique + CVE policy bloquante + tags immuables. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Signature Cosign + admission policy cote Kubernetes. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Replication DR + retention/quotas + stockage objet externe. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Proxy cache pour des builds CI rapides et resilients. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Pour les microservices bancaires haute disponibilite (Worldline / Societe Generale Maroc), la containerisation et l'orchestration Kubernetes/Helm ont standardise les deploiements et fiabilise des plateformes traitant des millions de transactions par jour. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Projets RBAC, robots CI a portee minimale."
+    },
+    {
+     "type": "li",
+     "text": "Scan automatique + CVE policy bloquante + tags immuables."
+    },
+    {
+     "type": "li",
+     "text": "Signature Cosign + admission policy cote Kubernetes."
+    },
+    {
+     "type": "li",
+     "text": "Replication DR + retention/quotas + stockage objet externe."
+    },
+    {
+     "type": "li",
+     "text": "Proxy cache pour des builds CI rapides et resilients."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser Harbor ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, Harbor devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  }
+ ]
+}

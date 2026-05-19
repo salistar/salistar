@@ -1,0 +1,714 @@
+{
+ "slug": "k3s",
+ "name": "K3s",
+ "category": "Conteneurisation",
+ "role": "K3s est une distribution Kubernetes certifiee CNCF, ultra-legere (binaire unique < 100 Mo), concue pour l'edge, l'IoT, le CI et les environnements a ressources contraintes. Elle remplace etcd par une base embarquee (SQLite/embedded etcd), integre conteneur runtime, CNI, Ingress (Traefik) et load balancer, tout en restant 100% compatible avec l'API Kubernetes. Ideale pour des clusters de test reproductibles, des PoC et des deploiements on-prem multi-noeuds simples a operer.",
+ "commands": [
+  {
+   "cmd": "curl -sfL https://get.k3s.io | sh -",
+   "desc": "Installer un serveur K3s mono-noeud"
+  },
+  {
+   "cmd": "curl -sfL https://get.k3s.io | K3S_URL=https://srv:6443 K3S_TOKEN=t sh -",
+   "desc": "Joindre un agent"
+  },
+  {
+   "cmd": "k3s kubectl get nodes",
+   "desc": "kubectl integre"
+  },
+  {
+   "cmd": "cat /var/lib/rancher/k3s/server/node-token",
+   "desc": "Recuperer le token de join"
+  },
+  {
+   "cmd": "k3s server --cluster-init",
+   "desc": "Initialiser un cluster HA (embedded etcd)"
+  },
+  {
+   "cmd": "k3s-uninstall.sh / k3s-agent-uninstall.sh",
+   "desc": "Desinstaller serveur / agent"
+  },
+  {
+   "cmd": "systemctl status k3s",
+   "desc": "Etat du service"
+  },
+  {
+   "cmd": "k3s kubectl apply -f app.yaml",
+   "desc": "Deployer une charge"
+  },
+  {
+   "cmd": "INSTALL_K3S_EXEC='--disable traefik' ...",
+   "desc": "Desactiver des composants par defaut"
+  },
+  {
+   "cmd": "k3s ctr images ls",
+   "desc": "Images du runtime containerd embarque"
+  },
+  {
+   "cmd": "kubectl get svc -n kube-system traefik",
+   "desc": "Ingress Traefik integre"
+  },
+  {
+   "cmd": "k3s etcd-snapshot save",
+   "desc": "Snapshot du datastore (HA)"
+  }
+ ],
+ "articles": [
+  {
+   "slug": "fondamentaux",
+   "title": "K3s : fondamentaux et architecture",
+   "subtitle": "Le modele mental indispensable pour exploiter K3s sans le subir",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article pose les fondamentaux et l'architecture de K3s. Comprendre ces mecanismes est le prerequis pour l'exploiter de maniere fiable, et non comme une boite noire."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait K3s ?"
+    },
+    {
+     "type": "p",
+     "text": "K3s est une distribution Kubernetes certifiee CNCF, ultra-legere (binaire unique < 100 Mo), concue pour l'edge, l'IoT, le CI et les environnements a ressources contraintes. Elle remplace etcd par une base embarquee (SQLite/embedded etcd), integre conteneur runtime, CNI, Ingress (Traefik) et load balancer, tout en restant 100% compatible avec l'API Kubernetes. Ideale pour des clusters de test reproductibles, des PoC et des deploiements on-prem multi-noeuds simples a operer."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a K3s, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Concepts et architecture"
+    },
+    {
+     "type": "p",
+     "text": "Avant toute mise en oeuvre, il faut un modele mental correct de K3s. Les points suivants constituent la base sans laquelle l'outil reste une boite noire fragile."
+    },
+    {
+     "type": "p",
+     "text": "Binaire unique embarquant API server, scheduler, controller, kubelet, containerd, Flannel CNI et Traefik. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Datastore pluggable : SQLite (mono-noeud), embedded etcd (HA), ou backend externe (MySQL/Postgres). En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "100% conforme a l'API Kubernetes : les manifests/Helm/kubectl fonctionnent a l'identique. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Composants par defaut (Traefik, ServiceLB, local-path) desactivables selon le besoin. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Empreinte memoire/CPU reduite : adapte a l'edge, aux VMs modestes et au CI ephemere. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Token de join unique pour ajouter agents/serveurs ; bootstrap simplifie. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "h2",
+     "text": "Pieges courants et depannage"
+    },
+    {
+     "type": "p",
+     "text": "La plupart des incidents proviennent d'un petit nombre d'erreurs recurrentes. Les reconnaitre tot fait gagner un temps considerable."
+    },
+    {
+     "type": "p",
+     "text": "SQLite mono-noeud en production : pas de HA — passer en embedded etcd 3 serveurs. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Traefik/ServiceLB par defaut en conflit avec une stack Ingress maison : desactiver explicitement. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Stockage local-path non repartie : prevoir Longhorn/CSI pour la persistance HA. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Token de join expose : compromission du cluster. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Snapshots etcd non testes : reprise illusoire. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Pour les microservices bancaires haute disponibilite (Worldline / Societe Generale Maroc), la containerisation et l'orchestration Kubernetes/Helm ont standardise les deploiements et fiabilise des plateformes traitant des millions de transactions par jour. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "HA embedded etcd (3 serveurs) en production, snapshots testes."
+    },
+    {
+     "type": "li",
+     "text": "Desactiver les composants par defaut non utilises."
+    },
+    {
+     "type": "li",
+     "text": "Installation automatisee (Ansible/k3d) et reproductible."
+    },
+    {
+     "type": "li",
+     "text": "Securite K8s standard (RBAC/NetworkPolicy/secrets chiffres)."
+    },
+    {
+     "type": "li",
+     "text": "Observabilite et GitOps identiques a un cluster classique."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser K3s ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, K3s devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "installation",
+   "title": "Installer et configurer K3s (approche industrialisee)",
+   "subtitle": "Une mise en place reproductible, versionnee et prete pour la production",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article detaille l'installation et la configuration de K3s selon une approche industrialisee : reproductible, versionnee et prete pour la production des le depart."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait K3s ?"
+    },
+    {
+     "type": "p",
+     "text": "K3s est une distribution Kubernetes certifiee CNCF, ultra-legere (binaire unique < 100 Mo), concue pour l'edge, l'IoT, le CI et les environnements a ressources contraintes. Elle remplace etcd par une base embarquee (SQLite/embedded etcd), integre conteneur runtime, CNI, Ingress (Traefik) et load balancer, tout en restant 100% compatible avec l'API Kubernetes. Ideale pour des clusters de test reproductibles, des PoC et des deploiements on-prem multi-noeuds simples a operer."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a K3s, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Installation et configuration"
+    },
+    {
+     "type": "p",
+     "text": "Une installation 'qui marche' ne suffit pas : viser des le depart une mise en place reproductible, versionnee et conforme aux contraintes de production."
+    },
+    {
+     "type": "p",
+     "text": "Une commande pour le serveur ; les agents joignent via K3S_URL + K3S_TOKEN. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "HA : 3 serveurs avec --cluster-init/embedded etcd derriere un VIP/LB pour l'API. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Desactiver les composants non desires (--disable traefik/servicelb) si une stack maison est preferee. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Configurer un StorageClass adapte (local-path par defaut, ou Longhorn pour la persistance repartie). C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Automatiser l'installation via Ansible pour des clusters reproductibles multi-noeuds. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "h2",
+     "text": "Concepts et architecture"
+    },
+    {
+     "type": "p",
+     "text": "Avant toute mise en oeuvre, il faut un modele mental correct de K3s. Les points suivants constituent la base sans laquelle l'outil reste une boite noire fragile."
+    },
+    {
+     "type": "p",
+     "text": "Binaire unique embarquant API server, scheduler, controller, kubelet, containerd, Flannel CNI et Traefik. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Datastore pluggable : SQLite (mono-noeud), embedded etcd (HA), ou backend externe (MySQL/Postgres). Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "100% conforme a l'API Kubernetes : les manifests/Helm/kubectl fonctionnent a l'identique. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Composants par defaut (Traefik, ServiceLB, local-path) desactivables selon le besoin. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "h2",
+     "text": "Resume des commandes essentielles"
+    },
+    {
+     "type": "p",
+     "text": "Aide-memoire operationnel des commandes et configurations les plus utilisees au quotidien. Chaque entree indique la commande puis son role."
+    },
+    {
+     "type": "cmds",
+     "items": [
+      {
+       "cmd": "curl -sfL https://get.k3s.io | sh -",
+       "desc": "Installer un serveur K3s mono-noeud"
+      },
+      {
+       "cmd": "curl -sfL https://get.k3s.io | K3S_URL=https://srv:6443 K3S_TOKEN=t sh -",
+       "desc": "Joindre un agent"
+      },
+      {
+       "cmd": "k3s kubectl get nodes",
+       "desc": "kubectl integre"
+      },
+      {
+       "cmd": "cat /var/lib/rancher/k3s/server/node-token",
+       "desc": "Recuperer le token de join"
+      },
+      {
+       "cmd": "k3s server --cluster-init",
+       "desc": "Initialiser un cluster HA (embedded etcd)"
+      },
+      {
+       "cmd": "k3s-uninstall.sh / k3s-agent-uninstall.sh",
+       "desc": "Desinstaller serveur / agent"
+      },
+      {
+       "cmd": "systemctl status k3s",
+       "desc": "Etat du service"
+      },
+      {
+       "cmd": "k3s kubectl apply -f app.yaml",
+       "desc": "Deployer une charge"
+      },
+      {
+       "cmd": "INSTALL_K3S_EXEC='--disable traefik' ...",
+       "desc": "Desactiver des composants par defaut"
+      },
+      {
+       "cmd": "k3s ctr images ls",
+       "desc": "Images du runtime containerd embarque"
+      },
+      {
+       "cmd": "kubectl get svc -n kube-system traefik",
+       "desc": "Ingress Traefik integre"
+      },
+      {
+       "cmd": "k3s etcd-snapshot save",
+       "desc": "Snapshot du datastore (HA)"
+      }
+     ]
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Pour les microservices bancaires haute disponibilite (Worldline / Societe Generale Maroc), la containerisation et l'orchestration Kubernetes/Helm ont standardise les deploiements et fiabilise des plateformes traitant des millions de transactions par jour. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "HA embedded etcd (3 serveurs) en production, snapshots testes."
+    },
+    {
+     "type": "li",
+     "text": "Desactiver les composants par defaut non utilises."
+    },
+    {
+     "type": "li",
+     "text": "Installation automatisee (Ansible/k3d) et reproductible."
+    },
+    {
+     "type": "li",
+     "text": "Securite K8s standard (RBAC/NetworkPolicy/secrets chiffres)."
+    },
+    {
+     "type": "li",
+     "text": "Observabilite et GitOps identiques a un cluster classique."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser K3s ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, K3s devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "cicd",
+   "title": "K3s dans une chaine CI/CD",
+   "subtitle": "Ou K3s intervient dans le pipeline, et comment le rendre fiable",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article montre comment integrer K3s dans une chaine CI/CD : ou il intervient, comment le rendre fiable, et comment il accelere et securise la livraison."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait K3s ?"
+    },
+    {
+     "type": "p",
+     "text": "K3s est une distribution Kubernetes certifiee CNCF, ultra-legere (binaire unique < 100 Mo), concue pour l'edge, l'IoT, le CI et les environnements a ressources contraintes. Elle remplace etcd par une base embarquee (SQLite/embedded etcd), integre conteneur runtime, CNI, Ingress (Traefik) et load balancer, tout en restant 100% compatible avec l'API Kubernetes. Ideale pour des clusters de test reproductibles, des PoC et des deploiements on-prem multi-noeuds simples a operer."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a K3s, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Integration CI/CD et automatisation"
+    },
+    {
+     "type": "p",
+     "text": "L'interet de K3s se revele pleinement une fois integre a un pipeline automatise. Voici comment l'y inserer de maniere fiable."
+    },
+    {
+     "type": "p",
+     "text": "Cluster K3s ephemere en pipeline (dans un conteneur/VM) pour des tests d'integration Kubernetes realistes. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "k3d (K3s-in-Docker) cree/detruit des clusters jetables en secondes pour la CI. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Deploiement GitOps (Argo CD/Flux) identique a un cluster classique grace a la conformite API. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Snapshots etcd avant upgrade pour un rollback rapide. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Promotion d'images par digest comme sur tout cluster Kubernetes. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "h2",
+     "text": "Bonnes pratiques eprouvees"
+    },
+    {
+     "type": "p",
+     "text": "Ces principes condensent l'experience operationnelle : ils ne sont pas theoriques mais issus de ce qui evite reellement les incidents."
+    },
+    {
+     "type": "p",
+     "text": "HA embedded etcd (3 serveurs) en production, snapshots testes. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Desactiver les composants par defaut non utilises. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Installation automatisee (Ansible/k3d) et reproductible. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Securite K8s standard (RBAC/NetworkPolicy/secrets chiffres). Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Observabilite et GitOps identiques a un cluster classique. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Pour les microservices bancaires haute disponibilite (Worldline / Societe Generale Maroc), la containerisation et l'orchestration Kubernetes/Helm ont standardise les deploiements et fiabilise des plateformes traitant des millions de transactions par jour. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "HA embedded etcd (3 serveurs) en production, snapshots testes."
+    },
+    {
+     "type": "li",
+     "text": "Desactiver les composants par defaut non utilises."
+    },
+    {
+     "type": "li",
+     "text": "Installation automatisee (Ansible/k3d) et reproductible."
+    },
+    {
+     "type": "li",
+     "text": "Securite K8s standard (RBAC/NetworkPolicy/secrets chiffres)."
+    },
+    {
+     "type": "li",
+     "text": "Observabilite et GitOps identiques a un cluster classique."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser K3s ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, K3s devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "production",
+   "title": "K3s en production : scalabilite et securite",
+   "subtitle": "Haute disponibilite, mise a l'echelle et durcissement",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article traite de K3s en production : scalabilite, haute disponibilite et securite, avec les exigences propres aux environnements reglementes."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait K3s ?"
+    },
+    {
+     "type": "p",
+     "text": "K3s est une distribution Kubernetes certifiee CNCF, ultra-legere (binaire unique < 100 Mo), concue pour l'edge, l'IoT, le CI et les environnements a ressources contraintes. Elle remplace etcd par une base embarquee (SQLite/embedded etcd), integre conteneur runtime, CNI, Ingress (Traefik) et load balancer, tout en restant 100% compatible avec l'API Kubernetes. Ideale pour des clusters de test reproductibles, des PoC et des deploiements on-prem multi-noeuds simples a operer."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a K3s, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Production, scalabilite et fiabilite"
+    },
+    {
+     "type": "p",
+     "text": "En production, les exigences changent d'echelle : disponibilite, charge, reprise. Les principes ci-dessous evitent les mauvaises surprises."
+    },
+    {
+     "type": "p",
+     "text": "HA via 3 noeuds serveurs embedded etcd ; agents ajoutes a chaud selon la charge. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Sauvegardes regulieres du datastore (k3s etcd-snapshot) testees pour la reprise. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Empreinte reduite = cout d'exploitation faible pour l'edge/on-prem. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Mises a jour controlees (system-upgrade-controller) noeud par noeud. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Observabilite identique (Prometheus/Grafana/Loki) — pas de specificite operationnelle. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "h2",
+     "text": "Securite et durcissement"
+    },
+    {
+     "type": "p",
+     "text": "La securite n'est pas une option ajoutee a la fin : elle se conçoit des l'architecture, surtout en environnement reglemente."
+    },
+    {
+     "type": "p",
+     "text": "RBAC, NetworkPolicies et Pod Security identiques a Kubernetes upstream. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Token de join protege ; rotation et acces restreint au node-token. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Chiffrement des secrets at rest et gestion externe (Vault/External Secrets). Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Surface reduite (binaire unique) mais maintien a jour indispensable (CVE noyau/runtime). Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Durcissement hote (CIS) car K3s est souvent sur des noeuds edge moins isoles. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Pour les microservices bancaires haute disponibilite (Worldline / Societe Generale Maroc), la containerisation et l'orchestration Kubernetes/Helm ont standardise les deploiements et fiabilise des plateformes traitant des millions de transactions par jour. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "HA embedded etcd (3 serveurs) en production, snapshots testes."
+    },
+    {
+     "type": "li",
+     "text": "Desactiver les composants par defaut non utilises."
+    },
+    {
+     "type": "li",
+     "text": "Installation automatisee (Ansible/k3d) et reproductible."
+    },
+    {
+     "type": "li",
+     "text": "Securite K8s standard (RBAC/NetworkPolicy/secrets chiffres)."
+    },
+    {
+     "type": "li",
+     "text": "Observabilite et GitOps identiques a un cluster classique."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser K3s ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, K3s devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "depannage",
+   "title": "K3s : depannage et bonnes pratiques",
+   "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article rassemble le depannage et les bonnes pratiques de K3s : les pieges recurrents, leurs symptomes, et les principes qui evitent la dette operationnelle."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait K3s ?"
+    },
+    {
+     "type": "p",
+     "text": "K3s est une distribution Kubernetes certifiee CNCF, ultra-legere (binaire unique < 100 Mo), concue pour l'edge, l'IoT, le CI et les environnements a ressources contraintes. Elle remplace etcd par une base embarquee (SQLite/embedded etcd), integre conteneur runtime, CNI, Ingress (Traefik) et load balancer, tout en restant 100% compatible avec l'API Kubernetes. Ideale pour des clusters de test reproductibles, des PoC et des deploiements on-prem multi-noeuds simples a operer."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a K3s, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Pieges courants et depannage"
+    },
+    {
+     "type": "p",
+     "text": "La plupart des incidents proviennent d'un petit nombre d'erreurs recurrentes. Les reconnaitre tot fait gagner un temps considerable."
+    },
+    {
+     "type": "p",
+     "text": "SQLite mono-noeud en production : pas de HA — passer en embedded etcd 3 serveurs. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Traefik/ServiceLB par defaut en conflit avec une stack Ingress maison : desactiver explicitement. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Stockage local-path non repartie : prevoir Longhorn/CSI pour la persistance HA. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Token de join expose : compromission du cluster. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Snapshots etcd non testes : reprise illusoire. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "h2",
+     "text": "Bonnes pratiques eprouvees"
+    },
+    {
+     "type": "p",
+     "text": "Ces principes condensent l'experience operationnelle : ils ne sont pas theoriques mais issus de ce qui evite reellement les incidents."
+    },
+    {
+     "type": "p",
+     "text": "HA embedded etcd (3 serveurs) en production, snapshots testes. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Desactiver les composants par defaut non utilises. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Installation automatisee (Ansible/k3d) et reproductible. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Securite K8s standard (RBAC/NetworkPolicy/secrets chiffres). C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Observabilite et GitOps identiques a un cluster classique. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Pour les microservices bancaires haute disponibilite (Worldline / Societe Generale Maroc), la containerisation et l'orchestration Kubernetes/Helm ont standardise les deploiements et fiabilise des plateformes traitant des millions de transactions par jour. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "HA embedded etcd (3 serveurs) en production, snapshots testes."
+    },
+    {
+     "type": "li",
+     "text": "Desactiver les composants par defaut non utilises."
+    },
+    {
+     "type": "li",
+     "text": "Installation automatisee (Ansible/k3d) et reproductible."
+    },
+    {
+     "type": "li",
+     "text": "Securite K8s standard (RBAC/NetworkPolicy/secrets chiffres)."
+    },
+    {
+     "type": "li",
+     "text": "Observabilite et GitOps identiques a un cluster classique."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser K3s ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, K3s devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  }
+ ]
+}

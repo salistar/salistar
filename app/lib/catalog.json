@@ -1,0 +1,1803 @@
+{
+ "generatedAt": "2026-05-19",
+ "cv": {
+  "name": "Idriss Kriouile",
+  "first": "Idriss",
+  "last": "Kriouile",
+  "title": "Senior DevOps Engineer / Tech Lead Automation",
+  "status": "Disponible sous 1 mois — Casablanca / tout le Maroc",
+  "profile": "Ingenieur DevOps Senior avec +8 ans d'experience dans la conception, l'industrialisation et la maintenance de pipelines CI/CD et d'infrastructures cloud natives pour des environnements bancaires et grands comptes (Worldline, Societe Generale Maroc, HPS, Groupe Rocher). Expert Jenkins, GitLab CI/CD, GitHub Actions, Docker, Kubernetes, Helm et GitOps (ArgoCD, Flux). Solides competences en scripting Python, Go, Bash, PowerShell et en Infrastructure as Code (Terraform, Ansible). Capacite reconnue a encadrer des equipes techniques et a fiabiliser les cycles de livraison (-70% interventions manuelles, -40% temps de deploiement). Trilingue FR/EN/AR.",
+  "contact": {
+   "email": "Idriss.kriouile.pro@gmail.com",
+   "phone": "+212 661 917 995",
+   "location": "Sala Al-Jadida, Maroc",
+   "linkedin": "linkedin.com/in/idriss-kriouile",
+   "github": "github.com/idriss-kriouile",
+   "org": "github.com/salistar",
+   "site": "salistar.com"
+  },
+  "skills": [
+   [
+    "CI/CD",
+    "Jenkins, GitLab CI/CD, GitHub Actions, pipelines multi-stages, deploiements canary/blue-green, Groovy (Jenkins shared libraries)"
+   ],
+   [
+    "GitOps",
+    "ArgoCD, Flux, gestion declarative multi-clusters, synchronisation Git -> Kubernetes"
+   ],
+   [
+    "Conteneurisation",
+    "Docker, Kubernetes, Helm, Docker Compose, K3s, Harbor, registres prives"
+   ],
+   [
+    "IaC & Config",
+    "Terraform, Ansible, Pulumi, gestion des secrets (Vault, Sealed Secrets)"
+   ],
+   [
+    "Langages / Scripting",
+    "Python, Go, Bash, PowerShell, Groovy, JavaScript/TypeScript, Java"
+   ],
+   [
+    "Cloud",
+    "AWS, GCP, Azure, Hetzner, OVH"
+   ],
+   [
+    "Monitoring / Observ.",
+    "Prometheus, Grafana, ELK Stack, Datadog, Loki, alerting"
+   ],
+   [
+    "Securite DevSecOps",
+    "SAST/DAST, SonarQube, Trivy, gestion secrets, RBAC, PCI DSS"
+   ],
+   [
+    "Tests automatises",
+    "Robot Framework, Playwright, Cypress, Selenium, JMeter, Postman"
+   ],
+   [
+    "Methodologies",
+    "Agile/Scrum, DevSecOps, SRE, GitOps, TDD/BDD"
+   ]
+  ],
+  "experience": [
+   {
+    "company": "ALTEN — Rabat, Maroc",
+    "period": "Juin 2024 — Present",
+    "role": "Senior DevOps Engineer / Tech Lead Automation",
+    "bullets": [
+     "WORLDLINE (Projet OMS) — Tech Lead DevOps / QA : pipelines CI/CD Jenkins & GitLab CI (XMLCONV, BWB Web Statements, FileNet Archiving).",
+     "SOCIETE GENERALE MAROC (Projet Manor) — Chef d'Equipes Monitoring / Product Owner.",
+     "Containerisation des microservices via Docker, orchestration Kubernetes, deploiements Helm pour environnements bancaires haute disponibilite.",
+     "Industrialisation des pipelines multi-environnements (Dev/Recette/Prod) : build, tests, packaging, livraison automatisee, rollbacks.",
+     "Automatisation du provisioning et de l'orchestration SSH multi-serveurs (12+ noeuds) via Python et Bash ; outils internes en Go.",
+     "Encadrement de 8 ingenieurs sur 3 projets simultanes, -40% temps de deploiement.",
+     "Tests Robot Framework (XMLCONV, ISO 8583), tests API Postman/REST Assured, charge JMeter.",
+     "8 dashboards Grafana / ELK, -70% temps de detection d'incidents ; synthetic tests continus.",
+     "Formation de 20+ collaborateurs (30h+) en CI/CD, conteneurisation et pratiques DevOps."
+    ]
+   },
+   {
+    "company": "VISEO — Casablanca (Groupe Rocher, France)",
+    "period": "Sept 2023 — Avril 2024",
+    "role": "Consultant Senior DevOps / Cloud — Mission Groupe Rocher",
+    "bullets": [
+     "Industrialisation de pipelines GitLab CI et Jenkins pour 12 applications Spring Boot sur Kubernetes.",
+     "Automatisation de 90% des flux de tests et deploiement (Ansible, Docker, Kubernetes, GitLab CI), -70% interventions manuelles.",
+     "Provisioning cloud via Terraform et configuration via Ansible (multi-environnements AWS).",
+     "15 dashboards KPI ELK Stack, +80% visibilite operationnelle ; charge JMeter (3000+ utilisateurs)."
+    ]
+   },
+   {
+    "company": "SYLOB (FORTERRO) — Maroc",
+    "period": "Aout 2022 — Sept 2023",
+    "role": "Ingenieur DevOps Senior & Integrateur",
+    "bullets": [
+     "Chaine CI/CD complete (Docker, Kubernetes, GitLab CI, Ansible, Terraform/AWS) — 100% du cycle automatise.",
+     "Deploiement multi-environnements (Recette/Pre-prod/Prod), -35% incidents post-deploiement.",
+     "Tests automatises Cypress & Robot Framework (85%), -60% bugs en production ; API Postman/SoapUI (2M+ transactions/jour)."
+    ]
+   },
+   {
+    "company": "HPS (Hightech Payment Systems) — Casablanca",
+    "period": "Sept 2021 — Aout 2022",
+    "role": "Ingenieur DevOps / Test Automation — Monetique",
+    "bullets": [
+     "Industrialisation des pipelines Jenkins pour PowerCARD (paiements ISO 8583).",
+     "Containerisation des environnements de test via Docker ; PowerShell & Python multi-OS.",
+     "Bonnes pratiques PCI DSS dans les pipelines (secrets, durcissement, RBAC).",
+     "200+ incidents critiques resolus (SLA 98%), plateformes 1M+ transactions/jour pour 5 banques."
+    ]
+   },
+   {
+    "company": "Experiences anterieures",
+    "period": "2014 — 2021",
+    "role": "Orange Business Services / Lafarge Maroc",
+    "bullets": [
+     "Orange Business Services (2021) — Migration Angular/Django + ELK, pipelines CI/CD, tests de regression.",
+     "Lafarge Maroc (2014-2018) — Developpeur Full-Stack, 3 applications web/mobile, chaine CI/CD integree."
+    ]
+   }
+  ],
+  "education": [
+   "Ecole Superieure d'Informatique et du Numerique – UIR, Rabat | 2018-2021 — Cycle Ingenieur Informatique",
+   "Ecole d'Ingenieur ECAM Louis de Broglie – Bruz, France | 2012-2014",
+   "Ecole d'Ingenieur EFREI – Villejuif, France | 2010-2012"
+  ],
+  "languages": "Arabe (maternelle) - Francais (courant) - Anglais (courant)"
+ },
+ "categories": [
+  {
+   "name": "CI/CD",
+   "techs": [
+    {
+     "slug": "github-actions",
+     "name": "GitHub Actions",
+     "role": "GitHub Actions est la plateforme d'automatisation et CI/CD integree a GitHub. Les workflows YAML places dans .github/workflows reagissent a des evenements (push, pull_request, schedule, workflow_dispatch) et s'executent sur des runners hebergees ou auto-hebergees. L'ecosysteme du Marketplace fournit des milliers d'actions reutilisables (build, tests, deploiement cloud, scan securite). Matrices, environnements avec approbations, OIDC pour un acces cloud sans secret de longue duree et reusable workflows en font un outil moderne pour livrer en continu, du portfolio statique aux microservices conteneurises."
+    },
+    {
+     "slug": "gitlab-ci",
+     "name": "GitLab CI/CD",
+     "role": "GitLab CI/CD est le moteur d'integration et de livraison continues integre nativement a GitLab. Le pipeline est decrit dans un fichier .gitlab-ci.yml versionne, execute par des Runners (shell, Docker, Kubernetes). Il couvre tout le cycle DevSecOps : build, tests, SAST/DAST, conteneurisation, environnements dynamiques (review apps), deploiements multi-stages et Auto DevOps. Son integration registre/Container Registry, environnements et approbations en fait une plateforme de bout en bout, largement utilisee pour industrialiser des dizaines d'applications Spring Boot sur Kubernetes."
+    },
+    {
+     "slug": "jenkins",
+     "name": "Jenkins",
+     "role": "Jenkins est le serveur d'automatisation open-source de reference pour l'integration et la livraison continues. Il orchestre la compilation, les tests, le packaging et le deploiement via des pipelines declaratifs ou scriptes ecrits en Groovy (Jenkinsfile) et versionnes avec le code. Son ecosysteme de 1800+ plugins l'integre a Git, Docker, Kubernetes, les outils de qualite et les cloud providers. Les agents distribues permettent d'executer des milliers de jobs en parallele, et les Shared Libraries factorisent la logique de pipeline a l'echelle d'une organisation — un standard dans les environnements bancaires haute disponibilite."
+    }
+   ]
+  },
+  {
+   "name": "GitOps",
+   "techs": [
+    {
+     "slug": "argocd",
+     "name": "ArgoCD",
+     "role": "Argo CD est le controleur GitOps declaratif de reference pour Kubernetes. Il surveille en continu un depot Git contenant l'etat desire (manifests, Helm, Kustomize) et reconcilie le cluster pour qu'il converge vers cet etat. Git devient l'unique source de verite : tout changement est un commit revu, audite et reversible par git revert. ArgoCD apporte la visualisation temps reel de l'arborescence des ressources, le drift detection, les sync waves, les rollouts progressifs et la gestion multi-clusters — pilier d'une approche GitOps end-to-end pour des environnements bancaires."
+    },
+    {
+     "slug": "flux",
+     "name": "Flux CD",
+     "role": "Flux CD est un ensemble de controleurs GitOps natifs Kubernetes (projet CNCF gradue) qui synchronisent l'etat du cluster avec des sources Git, OCI ou Helm. Architecture modulaire (source-controller, kustomize-controller, helm-controller, notification-controller, image-automation) pilotee entierement par des Custom Resources. Flux excelle pour la gestion declarative multi-tenant et multi-clusters, l'automatisation des mises a jour d'images et l'integration profonde avec Kustomize et Helm — une approche GitOps legere, composable et securisee."
+    }
+   ]
+  },
+  {
+   "name": "Conteneurisation",
+   "techs": [
+    {
+     "slug": "docker",
+     "name": "Docker",
+     "role": "Docker est la plateforme de conteneurisation qui packetise une application et ses dependances dans une image immuable, portable et reproductible, executee de maniere isolee via les namespaces et cgroups du noyau Linux. Le Dockerfile decrit la construction de l'image, le registre la distribue, et le runtime garantit qu'un conteneur se comporte identiquement du poste developpeur a la production. Docker est le socle de l'industrialisation moderne : builds reproductibles, environnements de test jetables et microservices deployes sur Kubernetes."
+    },
+    {
+     "slug": "docker-compose",
+     "name": "Docker Compose",
+     "role": "Docker Compose definit et execute des applications multi-conteneurs via un fichier YAML declaratif (compose.yaml). Il orchestre services, reseaux, volumes et dependances en une commande, garantissant un environnement reproductible identique pour le developpement, les tests d'integration et les petits deploiements de production sur un hote unique. C'est l'outil de reference pour stacker une application, sa base de donnees et ses dependances sans la complexite d'un orchestrateur complet."
+    },
+    {
+     "slug": "harbor",
+     "name": "Harbor",
+     "role": "Harbor est un registre de conteneurs open-source (projet CNCF gradue) de niveau entreprise. Il stocke et distribue images OCI et charts Helm avec controle d'acces RBAC par projet, scan de vulnerabilites integre (Trivy), signature et politique d'admission (Cosign/Notation), replication multi-registres, retention et quotas. C'est la piece centrale d'une chaine d'approvisionnement logicielle securisee : seules des images scannees, signees et conformes sont promues vers la production bancaire."
+    },
+    {
+     "slug": "helm",
+     "name": "Helm",
+     "role": "Helm est le gestionnaire de paquets de Kubernetes. Il empaquette un ensemble de manifests dans un Chart parametrable et versionne, instancie en Releases via des values surchargeables par environnement. Templating Go, dependances de charts, hooks de cycle de vie, rollback atomique et depots de charts industrialisent le deploiement repetable d'applications complexes sur des dizaines de clusters — un standard pour livrer des microservices bancaires de maniere homogene."
+    },
+    {
+     "slug": "k3s",
+     "name": "K3s",
+     "role": "K3s est une distribution Kubernetes certifiee CNCF, ultra-legere (binaire unique < 100 Mo), concue pour l'edge, l'IoT, le CI et les environnements a ressources contraintes. Elle remplace etcd par une base embarquee (SQLite/embedded etcd), integre conteneur runtime, CNI, Ingress (Traefik) et load balancer, tout en restant 100% compatible avec l'API Kubernetes. Ideale pour des clusters de test reproductibles, des PoC et des deploiements on-prem multi-noeuds simples a operer."
+    },
+    {
+     "slug": "kubernetes",
+     "name": "Kubernetes",
+     "role": "Kubernetes (K8s) est l'orchestrateur de conteneurs standard de l'industrie. Il automatise le deploiement, la mise a l'echelle, l'auto-reparation et la mise en reseau d'applications conteneurisees a travers un cluster de noeuds. Son modele declaratif (objets YAML reconcilies en continu par des controleurs) garantit que l'etat reel converge vers l'etat desire. Services, Ingress, ConfigMaps/Secrets, autoscaling et RBAC en font la plateforme de reference pour exploiter des microservices bancaires en haute disponibilite."
+    }
+   ]
+  },
+  {
+   "name": "IaC & Config",
+   "techs": [
+    {
+     "slug": "ansible",
+     "name": "Ansible",
+     "role": "Ansible est l'outil d'automatisation et de gestion de configuration agentless de Red Hat. Via SSH/WinRM et des playbooks YAML idempotents, il configure des serveurs, deploie des applications et orchestre des operations multi-noeuds sans agent a installer. Inventaires statiques/dynamiques, roles reutilisables, Ansible Vault pour les secrets et Galaxy pour le partage en font le standard du provisioning et de l'exploitation reproductible — y compris l'orchestration SSH de fermes de 12+ serveurs."
+    },
+    {
+     "slug": "vault",
+     "name": "HashiCorp Vault",
+     "role": "Vault est le coffre-fort de secrets de HashiCorp. Il centralise stockage, acces et audit des secrets (mots de passe, cles, certificats, tokens) avec chiffrement de bout en bout, politiques fines, et surtout des secrets dynamiques a duree de vie courte (credentials DB/cloud generes a la demande puis revoques). Moteurs PKI, Transit (chiffrement as a service), KV, et integration Kubernetes/CI en font la brique centrale d'une gestion de secrets conforme PCI DSS — zero secret statique en clair."
+    },
+    {
+     "slug": "pulumi",
+     "name": "Pulumi",
+     "role": "Pulumi est une plateforme d'Infrastructure as Code qui exprime l'infrastructure dans des langages de programmation generalistes (TypeScript, Python, Go, C#). Au lieu d'un DSL, on beneficie de boucles, conditions, abstractions, tests unitaires et packaging natifs. Pulumi calcule un plan, gere un state (Pulumi Cloud ou backend self-managed) et applique via les memes providers cloud que l'ecosysteme Terraform — ideal pour des abstractions d'infrastructure typees et testables, partagees comme du vrai code."
+    },
+    {
+     "slug": "terraform",
+     "name": "Terraform",
+     "role": "Terraform est l'outil d'Infrastructure as Code declaratif de HashiCorp. Il decrit l'infrastructure (reseau, calcul, bases, DNS, IAM) en HCL, calcule un plan de convergence vers l'etat desire et l'applique de maniere idempotente via des providers (AWS, GCP, Azure, Cloudflare...). Le state suit les ressources gerees ; modules et workspaces industrialisent des environnements complets reproductibles en une commande, sur plusieurs clouds — un pilier du provisioning automatise multi-cloud."
+    }
+   ]
+  },
+  {
+   "name": "Langages / Scripting",
+   "techs": [
+    {
+     "slug": "bash",
+     "name": "Bash",
+     "role": "Bash est le shell et langage de script Unix omnipresent, colle universel de l'automatisation : provisioning, glue de pipelines CI, orchestration d'operations serveur et taches d'exploitation. Sa disponibilite par defaut sur quasiment tout systeme Linux en fait l'outil incontournable pour scripter rapidement, a condition d'appliquer une discipline stricte (mode strict, quoting, shellcheck) pour des scripts robustes et previsibles."
+    },
+    {
+     "slug": "go",
+     "name": "Go",
+     "role": "Go (Golang) est un langage compile, statiquement type, concu pour la simplicite, la performance et la concurrence. Compilation en binaire statique unique sans dependances, demarrage instantane, faible empreinte memoire et goroutines/channels pour la concurrence massive en font le langage de predilection des outils d'infrastructure (Docker, Kubernetes, Terraform) et du traitement haute performance — ideal pour developper des outils internes rapides et portables."
+    },
+    {
+     "slug": "groovy",
+     "name": "Groovy (Jenkins)",
+     "role": "Groovy est le langage dynamique de la JVM qui motorise les pipelines Jenkins (Jenkinsfile, declaratif et scripte) et les Shared Libraries. Sa syntaxe concise, son interoperabilite Java et ses closures permettent de factoriser la logique CI/CD a l'echelle d'une organisation : etapes standardisees, scan securite, deploiement Helm, gates d'approbation — reutilisees par des centaines de pipelines de maniere testable et versionnee."
+    },
+    {
+     "slug": "java",
+     "name": "Java",
+     "role": "Java est un langage objet, statiquement type, compile en bytecode portable execute par la JVM. Robustesse, ecosysteme mature (Spring Boot, Maven/Gradle) et outillage industriel en font le socle de nombreuses applications d'entreprise et bancaires. La maitrise du build (Maven/Gradle), du packaging conteneur et du tuning JVM est centrale pour industrialiser des pipelines CI/CD de microservices Spring Boot deployes sur Kubernetes."
+    },
+    {
+     "slug": "powershell",
+     "name": "PowerShell",
+     "role": "PowerShell est le shell et langage d'automatisation oriente objet de Microsoft, multiplateforme depuis PowerShell 7 (Core). Contrairement aux shells texte, le pipeline transporte des objets .NET typés, ce qui rend le traitement de donnees, l'administration Windows/Active Directory, l'automatisation cloud (Az/AWS.Tools) et les workflows multi-OS particulierement robustes et expressifs — un atout pour les environnements de test et l'exploitation heterogene."
+    },
+    {
+     "slug": "python",
+     "name": "Python",
+     "role": "Python est un langage interprete polyvalent, lisible et a typage dynamique, omnipresent en DevOps, automatisation, data et IA. Sa bibliotheque standard riche, son ecosysteme (requests, boto3, paramiko, pytest, FastAPI) et ses environnements virtuels en font l'outil ideal pour l'orchestration multi-serveurs, l'outillage CI, l'analyse transactionnelle et le glue code d'integration. Sa courbe d'apprentissage douce et sa portabilite expliquent son adoption massive pour fiabiliser les operations."
+    },
+    {
+     "slug": "typescript",
+     "name": "TypeScript",
+     "role": "TypeScript est un sur-ensemble type de JavaScript qui compile vers du JS standard. Le typage statique structurel detecte les erreurs a la compilation, ameliore la maintenabilite et l'outillage (autocompletion, refactoring sur), et s'impose pour les frontends modernes (React/Next.js), les backends Node (NestJS) et l'outillage IaC (CDK/Pulumi). Generics, types utilitaires et strict mode permettent des bases de code larges, sures et evolutives."
+    }
+   ]
+  },
+  {
+   "name": "Cloud",
+   "techs": [
+    {
+     "slug": "aws",
+     "name": "AWS",
+     "role": "Amazon Web Services est le fournisseur cloud leader, offrant 200+ services (calcul EC2/ECS/EKS/Lambda, stockage S3/EBS, reseau VPC, bases RDS/DynamoDB, IAM, observabilite CloudWatch). En DevOps, AWS sert de socle au provisioning automatise (Terraform/CloudFormation), aux clusters Kubernetes manages (EKS) et aux pipelines de livraison, avec un modele de securite IAM granulaire indispensable aux environnements multi-environnements et reglementes."
+    },
+    {
+     "slug": "gcp",
+     "name": "Google Cloud (GCP)",
+     "role": "Google Cloud Platform fournit calcul (GCE, GKE, Cloud Run), stockage (GCS), reseau, donnees (BigQuery) et un modele IAM hierarchique (Organisation > Dossiers > Projets). GKE est l'un des Kubernetes manages les plus aboutis, et la philosophie SRE de Google irrigue l'outillage (Cloud Operations). GCP est un socle privilegie pour des plateformes data/IA et des deploiements Kubernetes a grande echelle."
+    },
+    {
+     "slug": "hetzner",
+     "name": "Hetzner Cloud",
+     "role": "Hetzner Cloud est un fournisseur europeen d'infrastructure (serveurs cloud et dedies, volumes, load balancers, reseaux prives) reconnu pour un rapport performance/prix tres competitif. Avec une API simple, un provider Terraform officiel et le cloud-init, il convient parfaitement a l'hebergement maitrise de clusters K3s/Kubernetes, d'environnements de staging et de workloads cout-sensibles, tout en restant data en Europe (RGPD)."
+    },
+    {
+     "slug": "azure",
+     "name": "Microsoft Azure",
+     "role": "Microsoft Azure est le cloud d'entreprise integre a l'ecosysteme Microsoft (Entra ID, AKS, App Service, Azure DevOps). Organisation par Management Groups > Subscriptions > Resource Groups, RBAC Azure et Policy pour la gouvernance. AKS fournit Kubernetes manage et Key Vault la gestion de secrets — un socle courant pour les grands comptes deja investis dans l'ecosysteme Microsoft."
+    },
+    {
+     "slug": "ovh",
+     "name": "OVHcloud",
+     "role": "OVHcloud est un fournisseur europeen majeur (Public Cloud OpenStack, serveurs dedies/bare metal, Managed Kubernetes, stockage objet S3-compatible). Souverainete des donnees en Europe, bare metal performant et API/Terraform en font une option pertinente pour des workloads cout/souverainete-sensibles, du Kubernetes manage et des architectures hybrides."
+    }
+   ]
+  },
+  {
+   "name": "Monitoring / Observ.",
+   "techs": [
+    {
+     "slug": "datadog",
+     "name": "Datadog",
+     "role": "Datadog est une plateforme SaaS d'observabilite unifiee : metriques, logs, traces (APM), RUM, profiling, synthetics et securite, correles dans une seule interface. L'Agent collecte automatiquement metriques et traces, l'auto-instrumentation et 700+ integrations accelerent la mise en observabilite, et les monitors/SLO industrialisent l'alerting — adapte aux environnements ou un time-to-value rapide prime."
+    },
+    {
+     "slug": "elk",
+     "name": "ELK Stack",
+     "role": "La suite ELK (Elasticsearch, Logstash, Kibana) + Beats est la plateforme de gestion centralisee des logs et de recherche. Elasticsearch indexe et recherche a grande echelle, Logstash/Beats ingerent et transforment, Kibana visualise et explore. C'est l'outil de reference pour centraliser les logs applicatifs/infra, construire des dashboards KPI qualite/performance et accelerer le diagnostic d'incidents."
+    },
+    {
+     "slug": "grafana",
+     "name": "Grafana",
+     "role": "Grafana est la plateforme de visualisation et d'observabilite open-source. Elle agrege de multiples sources (Prometheus, Loki, Elasticsearch, SQL, Tempo) dans des dashboards interactifs, gere l'alerting unifie, les annotations et le provisioning as code. C'est l'outil de reference pour materialiser des dizaines de dashboards KPI infra/applicatifs et reduire drastiquement le temps de detection d'incidents."
+    },
+    {
+     "slug": "loki",
+     "name": "Grafana Loki",
+     "role": "Loki est le systeme d'agregation de logs de Grafana Labs, concu comme 'Prometheus pour les logs' : il n'indexe pas le contenu mais seulement un petit jeu de labels, ce qui le rend tres economique et scalable. Couple a Promtail/Alloy pour la collecte et a Grafana pour l'exploration (LogQL), il correle nativement logs et metriques par labels — ideal pour une observabilite cloud-native a cout maitrise."
+    },
+    {
+     "slug": "prometheus",
+     "name": "Prometheus",
+     "role": "Prometheus est le systeme de monitoring et d'alerting open-source de reference cloud-native (CNCF gradue). Il collecte des metriques en mode pull via HTTP, les stocke dans une TSDB locale efficace, et les interroge avec PromQL. Service discovery Kubernetes, exporters, regles d'enregistrement/alerte et Alertmanager en font le socle de l'observabilite des plateformes conteneurisees et du suivi des SLO/SLI."
+    }
+   ]
+  },
+  {
+   "name": "Securite DevSecOps",
+   "techs": [
+    {
+     "slug": "sonarqube",
+     "name": "SonarQube",
+     "role": "SonarQube est la plateforme d'inspection continue de la qualite et de la securite du code (SAST). Elle analyse 30+ langages pour detecter bugs, vulnerabilites, hotspots de securite, code smells et mesurer la couverture et la duplication. Le concept de Quality Gate, applique au code nouveau (Clean as You Code), bloque la livraison tant que les criteres ne sont pas remplis — un controle qualite/securite incontournable des pipelines bancaires."
+    },
+    {
+     "slug": "trivy",
+     "name": "Trivy",
+     "role": "Trivy (Aqua Security) est un scanner de securite open-source tout-en-un, rapide et sans serveur : images conteneur, systemes de fichiers, depots Git, IaC (Terraform/K8s/Dockerfile), licences et secrets. Il detecte les vulnerabilites (CVE OS + dependances applicatives) et les misconfigurations, et genere des SBOM — un maillon central du DevSecOps shift-left et de la securisation de la chaine d'approvisionnement."
+    }
+   ]
+  },
+  {
+   "name": "Tests automatises",
+   "techs": [
+    {
+     "slug": "jmeter",
+     "name": "Apache JMeter",
+     "role": "Apache JMeter est l'outil open-source de reference pour les tests de performance et de charge (HTTP, API REST/SOAP, JDBC, JMS, etc.). Il simule des milliers d'utilisateurs virtuels, mesure latence, debit et taux d'erreur, et s'integre au CI pour detecter les regressions de performance. Concu pour valider la robustesse de microservices et d'outils IT a forte volumetrie (milliers d'utilisateurs, millions de transactions)."
+    },
+    {
+     "slug": "cypress",
+     "name": "Cypress",
+     "role": "Cypress est un framework de tests E2E/composant JavaScript execute dans le navigateur, reconnu pour son experience developpeur : time-travel, rechargement instantane, retry-ability des assertions et debugging visuel. Adapte aux applications web modernes (SPA), il fournit des suites de regression et E2E rapides a ecrire, integrees au CI avec parallelisation (Cypress Cloud)."
+    },
+    {
+     "slug": "playwright",
+     "name": "Playwright",
+     "role": "Playwright (Microsoft) est un framework moderne de tests end-to-end multi-navigateurs (Chromium, Firefox, WebKit) en TypeScript/Python/Java/.NET. Auto-waiting intelligent, isolation par contexte de navigateur, tracing, intercep­tion reseau et parallelisme natif eliminent une grande part des tests flaky. C'est un standard actuel pour des suites E2E rapides, fiables et integrees au CI."
+    },
+    {
+     "slug": "postman",
+     "name": "Postman",
+     "role": "Postman est la plateforme de developpement et de test d'API. Elle permet de concevoir, documenter, mocker et tester des API REST/SOAP/GraphQL via des Collections, des environnements et des scripts de test (Chai). Newman, son runner CLI, integre les collections aux pipelines CI pour des tests de contrat/regression automatises sur des services traitant de gros volumes transactionnels."
+    },
+    {
+     "slug": "robot-framework",
+     "name": "Robot Framework",
+     "role": "Robot Framework est un framework d'automatisation de tests generique, base sur des mots-cles (keyword-driven), extensible par bibliotheques Python/Java. Sa syntaxe tabulaire lisible (proche du langage naturel) supporte les tests d'acceptation, E2E, API et RPA. Avec SeleniumLibrary, RequestsLibrary et des bibliotheques metier, il valide des flux complexes (XML bancaires, ISO 8583, E2E SSH) et s'integre nativement aux pipelines CI."
+    },
+    {
+     "slug": "selenium",
+     "name": "Selenium",
+     "role": "Selenium est le standard historique d'automatisation des navigateurs via le protocole W3C WebDriver. Multi-langage (Java/Python/C#/JS) et multi-navigateurs, il pilote des navigateurs reels et, via Selenium Grid, distribue l'execution a grande echelle. Mature et universel, il reste central pour la compatibilite cross-browser et l'integration de tests UI dans des pipelines CI heterogenes."
+    }
+   ]
+  }
+ ],
+ "techIndex": [
+  {
+   "slug": "aws",
+   "name": "AWS",
+   "category": "Cloud",
+   "role": "Amazon Web Services est le fournisseur cloud leader, offrant 200+ services (calcul EC2/ECS/EKS/Lambda, stockage S3/EBS, reseau VPC, bases RDS/DynamoDB, IAM, observabilite CloudWatch). En DevOps, AWS sert de socle au provisioning automatise (Terraform/CloudFormation), aux clusters Kubernetes manages (EKS) et aux pipelines de livraison, avec un modele de securite IAM granulaire indispensable aux environnements multi-environnements et reglementes.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "AWS : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter AWS sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer AWS (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "AWS dans une chaine CI/CD",
+     "subtitle": "Ou AWS intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "AWS en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "AWS : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "ansible",
+   "name": "Ansible",
+   "category": "IaC & Config",
+   "role": "Ansible est l'outil d'automatisation et de gestion de configuration agentless de Red Hat. Via SSH/WinRM et des playbooks YAML idempotents, il configure des serveurs, deploie des applications et orchestre des operations multi-noeuds sans agent a installer. Inventaires statiques/dynamiques, roles reutilisables, Ansible Vault pour les secrets et Galaxy pour le partage en font le standard du provisioning et de l'exploitation reproductible — y compris l'orchestration SSH de fermes de 12+ serveurs.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Ansible : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Ansible sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Ansible (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Ansible dans une chaine CI/CD",
+     "subtitle": "Ou Ansible intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Ansible en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Ansible : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "jmeter",
+   "name": "Apache JMeter",
+   "category": "Tests automatises",
+   "role": "Apache JMeter est l'outil open-source de reference pour les tests de performance et de charge (HTTP, API REST/SOAP, JDBC, JMS, etc.). Il simule des milliers d'utilisateurs virtuels, mesure latence, debit et taux d'erreur, et s'integre au CI pour detecter les regressions de performance. Concu pour valider la robustesse de microservices et d'outils IT a forte volumetrie (milliers d'utilisateurs, millions de transactions).",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Apache JMeter : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Apache JMeter sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Apache JMeter (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Apache JMeter dans une chaine CI/CD",
+     "subtitle": "Ou Apache JMeter intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Apache JMeter en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Apache JMeter : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "argocd",
+   "name": "ArgoCD",
+   "category": "GitOps",
+   "role": "Argo CD est le controleur GitOps declaratif de reference pour Kubernetes. Il surveille en continu un depot Git contenant l'etat desire (manifests, Helm, Kustomize) et reconcilie le cluster pour qu'il converge vers cet etat. Git devient l'unique source de verite : tout changement est un commit revu, audite et reversible par git revert. ArgoCD apporte la visualisation temps reel de l'arborescence des ressources, le drift detection, les sync waves, les rollouts progressifs et la gestion multi-clusters — pilier d'une approche GitOps end-to-end pour des environnements bancaires.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "ArgoCD : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter ArgoCD sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer ArgoCD (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "ArgoCD dans une chaine CI/CD",
+     "subtitle": "Ou ArgoCD intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "ArgoCD en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "ArgoCD : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "bash",
+   "name": "Bash",
+   "category": "Langages / Scripting",
+   "role": "Bash est le shell et langage de script Unix omnipresent, colle universel de l'automatisation : provisioning, glue de pipelines CI, orchestration d'operations serveur et taches d'exploitation. Sa disponibilite par defaut sur quasiment tout systeme Linux en fait l'outil incontournable pour scripter rapidement, a condition d'appliquer une discipline stricte (mode strict, quoting, shellcheck) pour des scripts robustes et previsibles.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Bash : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Bash sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Bash (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Bash dans une chaine CI/CD",
+     "subtitle": "Ou Bash intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Bash en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Bash : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "cypress",
+   "name": "Cypress",
+   "category": "Tests automatises",
+   "role": "Cypress est un framework de tests E2E/composant JavaScript execute dans le navigateur, reconnu pour son experience developpeur : time-travel, rechargement instantane, retry-ability des assertions et debugging visuel. Adapte aux applications web modernes (SPA), il fournit des suites de regression et E2E rapides a ecrire, integrees au CI avec parallelisation (Cypress Cloud).",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Cypress : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Cypress sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Cypress (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Cypress dans une chaine CI/CD",
+     "subtitle": "Ou Cypress intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Cypress en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Cypress : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "datadog",
+   "name": "Datadog",
+   "category": "Monitoring / Observ.",
+   "role": "Datadog est une plateforme SaaS d'observabilite unifiee : metriques, logs, traces (APM), RUM, profiling, synthetics et securite, correles dans une seule interface. L'Agent collecte automatiquement metriques et traces, l'auto-instrumentation et 700+ integrations accelerent la mise en observabilite, et les monitors/SLO industrialisent l'alerting — adapte aux environnements ou un time-to-value rapide prime.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Datadog : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Datadog sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Datadog (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Datadog dans une chaine CI/CD",
+     "subtitle": "Ou Datadog intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Datadog en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Datadog : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "docker",
+   "name": "Docker",
+   "category": "Conteneurisation",
+   "role": "Docker est la plateforme de conteneurisation qui packetise une application et ses dependances dans une image immuable, portable et reproductible, executee de maniere isolee via les namespaces et cgroups du noyau Linux. Le Dockerfile decrit la construction de l'image, le registre la distribue, et le runtime garantit qu'un conteneur se comporte identiquement du poste developpeur a la production. Docker est le socle de l'industrialisation moderne : builds reproductibles, environnements de test jetables et microservices deployes sur Kubernetes.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Docker : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Docker sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Docker (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Docker dans une chaine CI/CD",
+     "subtitle": "Ou Docker intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Docker en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Docker : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "docker-compose",
+   "name": "Docker Compose",
+   "category": "Conteneurisation",
+   "role": "Docker Compose definit et execute des applications multi-conteneurs via un fichier YAML declaratif (compose.yaml). Il orchestre services, reseaux, volumes et dependances en une commande, garantissant un environnement reproductible identique pour le developpement, les tests d'integration et les petits deploiements de production sur un hote unique. C'est l'outil de reference pour stacker une application, sa base de donnees et ses dependances sans la complexite d'un orchestrateur complet.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Docker Compose : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Docker Compose sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Docker Compose (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Docker Compose dans une chaine CI/CD",
+     "subtitle": "Ou Docker Compose intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Docker Compose en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Docker Compose : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "elk",
+   "name": "ELK Stack",
+   "category": "Monitoring / Observ.",
+   "role": "La suite ELK (Elasticsearch, Logstash, Kibana) + Beats est la plateforme de gestion centralisee des logs et de recherche. Elasticsearch indexe et recherche a grande echelle, Logstash/Beats ingerent et transforment, Kibana visualise et explore. C'est l'outil de reference pour centraliser les logs applicatifs/infra, construire des dashboards KPI qualite/performance et accelerer le diagnostic d'incidents.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "ELK Stack : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter ELK Stack sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer ELK Stack (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "ELK Stack dans une chaine CI/CD",
+     "subtitle": "Ou ELK Stack intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "ELK Stack en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "ELK Stack : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "flux",
+   "name": "Flux CD",
+   "category": "GitOps",
+   "role": "Flux CD est un ensemble de controleurs GitOps natifs Kubernetes (projet CNCF gradue) qui synchronisent l'etat du cluster avec des sources Git, OCI ou Helm. Architecture modulaire (source-controller, kustomize-controller, helm-controller, notification-controller, image-automation) pilotee entierement par des Custom Resources. Flux excelle pour la gestion declarative multi-tenant et multi-clusters, l'automatisation des mises a jour d'images et l'integration profonde avec Kustomize et Helm — une approche GitOps legere, composable et securisee.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Flux CD : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Flux CD sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Flux CD (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Flux CD dans une chaine CI/CD",
+     "subtitle": "Ou Flux CD intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Flux CD en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Flux CD : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "github-actions",
+   "name": "GitHub Actions",
+   "category": "CI/CD",
+   "role": "GitHub Actions est la plateforme d'automatisation et CI/CD integree a GitHub. Les workflows YAML places dans .github/workflows reagissent a des evenements (push, pull_request, schedule, workflow_dispatch) et s'executent sur des runners hebergees ou auto-hebergees. L'ecosysteme du Marketplace fournit des milliers d'actions reutilisables (build, tests, deploiement cloud, scan securite). Matrices, environnements avec approbations, OIDC pour un acces cloud sans secret de longue duree et reusable workflows en font un outil moderne pour livrer en continu, du portfolio statique aux microservices conteneurises.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "GitHub Actions : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter GitHub Actions sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer GitHub Actions (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "GitHub Actions dans une chaine CI/CD",
+     "subtitle": "Ou GitHub Actions intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "GitHub Actions en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "GitHub Actions : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "gitlab-ci",
+   "name": "GitLab CI/CD",
+   "category": "CI/CD",
+   "role": "GitLab CI/CD est le moteur d'integration et de livraison continues integre nativement a GitLab. Le pipeline est decrit dans un fichier .gitlab-ci.yml versionne, execute par des Runners (shell, Docker, Kubernetes). Il couvre tout le cycle DevSecOps : build, tests, SAST/DAST, conteneurisation, environnements dynamiques (review apps), deploiements multi-stages et Auto DevOps. Son integration registre/Container Registry, environnements et approbations en fait une plateforme de bout en bout, largement utilisee pour industrialiser des dizaines d'applications Spring Boot sur Kubernetes.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "GitLab CI/CD : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter GitLab CI/CD sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer GitLab CI/CD (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "GitLab CI/CD dans une chaine CI/CD",
+     "subtitle": "Ou GitLab CI/CD intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "GitLab CI/CD en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "GitLab CI/CD : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "go",
+   "name": "Go",
+   "category": "Langages / Scripting",
+   "role": "Go (Golang) est un langage compile, statiquement type, concu pour la simplicite, la performance et la concurrence. Compilation en binaire statique unique sans dependances, demarrage instantane, faible empreinte memoire et goroutines/channels pour la concurrence massive en font le langage de predilection des outils d'infrastructure (Docker, Kubernetes, Terraform) et du traitement haute performance — ideal pour developper des outils internes rapides et portables.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Go : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Go sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Go (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Go dans une chaine CI/CD",
+     "subtitle": "Ou Go intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Go en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Go : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "gcp",
+   "name": "Google Cloud (GCP)",
+   "category": "Cloud",
+   "role": "Google Cloud Platform fournit calcul (GCE, GKE, Cloud Run), stockage (GCS), reseau, donnees (BigQuery) et un modele IAM hierarchique (Organisation > Dossiers > Projets). GKE est l'un des Kubernetes manages les plus aboutis, et la philosophie SRE de Google irrigue l'outillage (Cloud Operations). GCP est un socle privilegie pour des plateformes data/IA et des deploiements Kubernetes a grande echelle.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Google Cloud (GCP) : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Google Cloud (GCP) sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Google Cloud (GCP) (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Google Cloud (GCP) dans une chaine CI/CD",
+     "subtitle": "Ou Google Cloud (GCP) intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Google Cloud (GCP) en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Google Cloud (GCP) : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "grafana",
+   "name": "Grafana",
+   "category": "Monitoring / Observ.",
+   "role": "Grafana est la plateforme de visualisation et d'observabilite open-source. Elle agrege de multiples sources (Prometheus, Loki, Elasticsearch, SQL, Tempo) dans des dashboards interactifs, gere l'alerting unifie, les annotations et le provisioning as code. C'est l'outil de reference pour materialiser des dizaines de dashboards KPI infra/applicatifs et reduire drastiquement le temps de detection d'incidents.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Grafana : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Grafana sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Grafana (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Grafana dans une chaine CI/CD",
+     "subtitle": "Ou Grafana intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Grafana en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Grafana : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "loki",
+   "name": "Grafana Loki",
+   "category": "Monitoring / Observ.",
+   "role": "Loki est le systeme d'agregation de logs de Grafana Labs, concu comme 'Prometheus pour les logs' : il n'indexe pas le contenu mais seulement un petit jeu de labels, ce qui le rend tres economique et scalable. Couple a Promtail/Alloy pour la collecte et a Grafana pour l'exploration (LogQL), il correle nativement logs et metriques par labels — ideal pour une observabilite cloud-native a cout maitrise.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Grafana Loki : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Grafana Loki sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Grafana Loki (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Grafana Loki dans une chaine CI/CD",
+     "subtitle": "Ou Grafana Loki intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Grafana Loki en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Grafana Loki : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "groovy",
+   "name": "Groovy (Jenkins)",
+   "category": "Langages / Scripting",
+   "role": "Groovy est le langage dynamique de la JVM qui motorise les pipelines Jenkins (Jenkinsfile, declaratif et scripte) et les Shared Libraries. Sa syntaxe concise, son interoperabilite Java et ses closures permettent de factoriser la logique CI/CD a l'echelle d'une organisation : etapes standardisees, scan securite, deploiement Helm, gates d'approbation — reutilisees par des centaines de pipelines de maniere testable et versionnee.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Groovy (Jenkins) : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Groovy (Jenkins) sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Groovy (Jenkins) (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Groovy (Jenkins) dans une chaine CI/CD",
+     "subtitle": "Ou Groovy (Jenkins) intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Groovy (Jenkins) en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Groovy (Jenkins) : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "harbor",
+   "name": "Harbor",
+   "category": "Conteneurisation",
+   "role": "Harbor est un registre de conteneurs open-source (projet CNCF gradue) de niveau entreprise. Il stocke et distribue images OCI et charts Helm avec controle d'acces RBAC par projet, scan de vulnerabilites integre (Trivy), signature et politique d'admission (Cosign/Notation), replication multi-registres, retention et quotas. C'est la piece centrale d'une chaine d'approvisionnement logicielle securisee : seules des images scannees, signees et conformes sont promues vers la production bancaire.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Harbor : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Harbor sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Harbor (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Harbor dans une chaine CI/CD",
+     "subtitle": "Ou Harbor intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Harbor en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Harbor : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "vault",
+   "name": "HashiCorp Vault",
+   "category": "IaC & Config",
+   "role": "Vault est le coffre-fort de secrets de HashiCorp. Il centralise stockage, acces et audit des secrets (mots de passe, cles, certificats, tokens) avec chiffrement de bout en bout, politiques fines, et surtout des secrets dynamiques a duree de vie courte (credentials DB/cloud generes a la demande puis revoques). Moteurs PKI, Transit (chiffrement as a service), KV, et integration Kubernetes/CI en font la brique centrale d'une gestion de secrets conforme PCI DSS — zero secret statique en clair.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "HashiCorp Vault : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter HashiCorp Vault sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer HashiCorp Vault (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "HashiCorp Vault dans une chaine CI/CD",
+     "subtitle": "Ou HashiCorp Vault intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "HashiCorp Vault en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "HashiCorp Vault : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "helm",
+   "name": "Helm",
+   "category": "Conteneurisation",
+   "role": "Helm est le gestionnaire de paquets de Kubernetes. Il empaquette un ensemble de manifests dans un Chart parametrable et versionne, instancie en Releases via des values surchargeables par environnement. Templating Go, dependances de charts, hooks de cycle de vie, rollback atomique et depots de charts industrialisent le deploiement repetable d'applications complexes sur des dizaines de clusters — un standard pour livrer des microservices bancaires de maniere homogene.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Helm : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Helm sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Helm (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Helm dans une chaine CI/CD",
+     "subtitle": "Ou Helm intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Helm en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Helm : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "hetzner",
+   "name": "Hetzner Cloud",
+   "category": "Cloud",
+   "role": "Hetzner Cloud est un fournisseur europeen d'infrastructure (serveurs cloud et dedies, volumes, load balancers, reseaux prives) reconnu pour un rapport performance/prix tres competitif. Avec une API simple, un provider Terraform officiel et le cloud-init, il convient parfaitement a l'hebergement maitrise de clusters K3s/Kubernetes, d'environnements de staging et de workloads cout-sensibles, tout en restant data en Europe (RGPD).",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Hetzner Cloud : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Hetzner Cloud sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Hetzner Cloud (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Hetzner Cloud dans une chaine CI/CD",
+     "subtitle": "Ou Hetzner Cloud intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Hetzner Cloud en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Hetzner Cloud : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "java",
+   "name": "Java",
+   "category": "Langages / Scripting",
+   "role": "Java est un langage objet, statiquement type, compile en bytecode portable execute par la JVM. Robustesse, ecosysteme mature (Spring Boot, Maven/Gradle) et outillage industriel en font le socle de nombreuses applications d'entreprise et bancaires. La maitrise du build (Maven/Gradle), du packaging conteneur et du tuning JVM est centrale pour industrialiser des pipelines CI/CD de microservices Spring Boot deployes sur Kubernetes.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Java : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Java sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Java (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Java dans une chaine CI/CD",
+     "subtitle": "Ou Java intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Java en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Java : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "jenkins",
+   "name": "Jenkins",
+   "category": "CI/CD",
+   "role": "Jenkins est le serveur d'automatisation open-source de reference pour l'integration et la livraison continues. Il orchestre la compilation, les tests, le packaging et le deploiement via des pipelines declaratifs ou scriptes ecrits en Groovy (Jenkinsfile) et versionnes avec le code. Son ecosysteme de 1800+ plugins l'integre a Git, Docker, Kubernetes, les outils de qualite et les cloud providers. Les agents distribues permettent d'executer des milliers de jobs en parallele, et les Shared Libraries factorisent la logique de pipeline a l'echelle d'une organisation — un standard dans les environnements bancaires haute disponibilite.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Jenkins : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Jenkins sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Jenkins (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Jenkins dans une chaine CI/CD",
+     "subtitle": "Ou Jenkins intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Jenkins en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Jenkins : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "k3s",
+   "name": "K3s",
+   "category": "Conteneurisation",
+   "role": "K3s est une distribution Kubernetes certifiee CNCF, ultra-legere (binaire unique < 100 Mo), concue pour l'edge, l'IoT, le CI et les environnements a ressources contraintes. Elle remplace etcd par une base embarquee (SQLite/embedded etcd), integre conteneur runtime, CNI, Ingress (Traefik) et load balancer, tout en restant 100% compatible avec l'API Kubernetes. Ideale pour des clusters de test reproductibles, des PoC et des deploiements on-prem multi-noeuds simples a operer.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "K3s : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter K3s sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer K3s (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "K3s dans une chaine CI/CD",
+     "subtitle": "Ou K3s intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "K3s en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "K3s : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "kubernetes",
+   "name": "Kubernetes",
+   "category": "Conteneurisation",
+   "role": "Kubernetes (K8s) est l'orchestrateur de conteneurs standard de l'industrie. Il automatise le deploiement, la mise a l'echelle, l'auto-reparation et la mise en reseau d'applications conteneurisees a travers un cluster de noeuds. Son modele declaratif (objets YAML reconcilies en continu par des controleurs) garantit que l'etat reel converge vers l'etat desire. Services, Ingress, ConfigMaps/Secrets, autoscaling et RBAC en font la plateforme de reference pour exploiter des microservices bancaires en haute disponibilite.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Kubernetes : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Kubernetes sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Kubernetes (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Kubernetes dans une chaine CI/CD",
+     "subtitle": "Ou Kubernetes intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Kubernetes en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Kubernetes : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "azure",
+   "name": "Microsoft Azure",
+   "category": "Cloud",
+   "role": "Microsoft Azure est le cloud d'entreprise integre a l'ecosysteme Microsoft (Entra ID, AKS, App Service, Azure DevOps). Organisation par Management Groups > Subscriptions > Resource Groups, RBAC Azure et Policy pour la gouvernance. AKS fournit Kubernetes manage et Key Vault la gestion de secrets — un socle courant pour les grands comptes deja investis dans l'ecosysteme Microsoft.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Microsoft Azure : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Microsoft Azure sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Microsoft Azure (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Microsoft Azure dans une chaine CI/CD",
+     "subtitle": "Ou Microsoft Azure intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Microsoft Azure en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Microsoft Azure : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "ovh",
+   "name": "OVHcloud",
+   "category": "Cloud",
+   "role": "OVHcloud est un fournisseur europeen majeur (Public Cloud OpenStack, serveurs dedies/bare metal, Managed Kubernetes, stockage objet S3-compatible). Souverainete des donnees en Europe, bare metal performant et API/Terraform en font une option pertinente pour des workloads cout/souverainete-sensibles, du Kubernetes manage et des architectures hybrides.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "OVHcloud : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter OVHcloud sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer OVHcloud (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "OVHcloud dans une chaine CI/CD",
+     "subtitle": "Ou OVHcloud intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "OVHcloud en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "OVHcloud : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "playwright",
+   "name": "Playwright",
+   "category": "Tests automatises",
+   "role": "Playwright (Microsoft) est un framework moderne de tests end-to-end multi-navigateurs (Chromium, Firefox, WebKit) en TypeScript/Python/Java/.NET. Auto-waiting intelligent, isolation par contexte de navigateur, tracing, intercep­tion reseau et parallelisme natif eliminent une grande part des tests flaky. C'est un standard actuel pour des suites E2E rapides, fiables et integrees au CI.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Playwright : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Playwright sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Playwright (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Playwright dans une chaine CI/CD",
+     "subtitle": "Ou Playwright intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Playwright en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Playwright : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "postman",
+   "name": "Postman",
+   "category": "Tests automatises",
+   "role": "Postman est la plateforme de developpement et de test d'API. Elle permet de concevoir, documenter, mocker et tester des API REST/SOAP/GraphQL via des Collections, des environnements et des scripts de test (Chai). Newman, son runner CLI, integre les collections aux pipelines CI pour des tests de contrat/regression automatises sur des services traitant de gros volumes transactionnels.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Postman : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Postman sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Postman (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Postman dans une chaine CI/CD",
+     "subtitle": "Ou Postman intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Postman en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Postman : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "powershell",
+   "name": "PowerShell",
+   "category": "Langages / Scripting",
+   "role": "PowerShell est le shell et langage d'automatisation oriente objet de Microsoft, multiplateforme depuis PowerShell 7 (Core). Contrairement aux shells texte, le pipeline transporte des objets .NET typés, ce qui rend le traitement de donnees, l'administration Windows/Active Directory, l'automatisation cloud (Az/AWS.Tools) et les workflows multi-OS particulierement robustes et expressifs — un atout pour les environnements de test et l'exploitation heterogene.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "PowerShell : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter PowerShell sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer PowerShell (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "PowerShell dans une chaine CI/CD",
+     "subtitle": "Ou PowerShell intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "PowerShell en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "PowerShell : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "prometheus",
+   "name": "Prometheus",
+   "category": "Monitoring / Observ.",
+   "role": "Prometheus est le systeme de monitoring et d'alerting open-source de reference cloud-native (CNCF gradue). Il collecte des metriques en mode pull via HTTP, les stocke dans une TSDB locale efficace, et les interroge avec PromQL. Service discovery Kubernetes, exporters, regles d'enregistrement/alerte et Alertmanager en font le socle de l'observabilite des plateformes conteneurisees et du suivi des SLO/SLI.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Prometheus : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Prometheus sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Prometheus (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Prometheus dans une chaine CI/CD",
+     "subtitle": "Ou Prometheus intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Prometheus en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Prometheus : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "pulumi",
+   "name": "Pulumi",
+   "category": "IaC & Config",
+   "role": "Pulumi est une plateforme d'Infrastructure as Code qui exprime l'infrastructure dans des langages de programmation generalistes (TypeScript, Python, Go, C#). Au lieu d'un DSL, on beneficie de boucles, conditions, abstractions, tests unitaires et packaging natifs. Pulumi calcule un plan, gere un state (Pulumi Cloud ou backend self-managed) et applique via les memes providers cloud que l'ecosysteme Terraform — ideal pour des abstractions d'infrastructure typees et testables, partagees comme du vrai code.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Pulumi : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Pulumi sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Pulumi (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Pulumi dans une chaine CI/CD",
+     "subtitle": "Ou Pulumi intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Pulumi en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Pulumi : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "python",
+   "name": "Python",
+   "category": "Langages / Scripting",
+   "role": "Python est un langage interprete polyvalent, lisible et a typage dynamique, omnipresent en DevOps, automatisation, data et IA. Sa bibliotheque standard riche, son ecosysteme (requests, boto3, paramiko, pytest, FastAPI) et ses environnements virtuels en font l'outil ideal pour l'orchestration multi-serveurs, l'outillage CI, l'analyse transactionnelle et le glue code d'integration. Sa courbe d'apprentissage douce et sa portabilite expliquent son adoption massive pour fiabiliser les operations.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Python : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Python sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Python (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Python dans une chaine CI/CD",
+     "subtitle": "Ou Python intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Python en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Python : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "robot-framework",
+   "name": "Robot Framework",
+   "category": "Tests automatises",
+   "role": "Robot Framework est un framework d'automatisation de tests generique, base sur des mots-cles (keyword-driven), extensible par bibliotheques Python/Java. Sa syntaxe tabulaire lisible (proche du langage naturel) supporte les tests d'acceptation, E2E, API et RPA. Avec SeleniumLibrary, RequestsLibrary et des bibliotheques metier, il valide des flux complexes (XML bancaires, ISO 8583, E2E SSH) et s'integre nativement aux pipelines CI.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Robot Framework : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Robot Framework sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Robot Framework (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Robot Framework dans une chaine CI/CD",
+     "subtitle": "Ou Robot Framework intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Robot Framework en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Robot Framework : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "selenium",
+   "name": "Selenium",
+   "category": "Tests automatises",
+   "role": "Selenium est le standard historique d'automatisation des navigateurs via le protocole W3C WebDriver. Multi-langage (Java/Python/C#/JS) et multi-navigateurs, il pilote des navigateurs reels et, via Selenium Grid, distribue l'execution a grande echelle. Mature et universel, il reste central pour la compatibilite cross-browser et l'integration de tests UI dans des pipelines CI heterogenes.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Selenium : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Selenium sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Selenium (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Selenium dans une chaine CI/CD",
+     "subtitle": "Ou Selenium intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Selenium en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Selenium : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "sonarqube",
+   "name": "SonarQube",
+   "category": "Securite DevSecOps",
+   "role": "SonarQube est la plateforme d'inspection continue de la qualite et de la securite du code (SAST). Elle analyse 30+ langages pour detecter bugs, vulnerabilites, hotspots de securite, code smells et mesurer la couverture et la duplication. Le concept de Quality Gate, applique au code nouveau (Clean as You Code), bloque la livraison tant que les criteres ne sont pas remplis — un controle qualite/securite incontournable des pipelines bancaires.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "SonarQube : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter SonarQube sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer SonarQube (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "SonarQube dans une chaine CI/CD",
+     "subtitle": "Ou SonarQube intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "SonarQube en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "SonarQube : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "terraform",
+   "name": "Terraform",
+   "category": "IaC & Config",
+   "role": "Terraform est l'outil d'Infrastructure as Code declaratif de HashiCorp. Il decrit l'infrastructure (reseau, calcul, bases, DNS, IAM) en HCL, calcule un plan de convergence vers l'etat desire et l'applique de maniere idempotente via des providers (AWS, GCP, Azure, Cloudflare...). Le state suit les ressources gerees ; modules et workspaces industrialisent des environnements complets reproductibles en une commande, sur plusieurs clouds — un pilier du provisioning automatise multi-cloud.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Terraform : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Terraform sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Terraform (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Terraform dans une chaine CI/CD",
+     "subtitle": "Ou Terraform intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Terraform en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Terraform : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "trivy",
+   "name": "Trivy",
+   "category": "Securite DevSecOps",
+   "role": "Trivy (Aqua Security) est un scanner de securite open-source tout-en-un, rapide et sans serveur : images conteneur, systemes de fichiers, depots Git, IaC (Terraform/K8s/Dockerfile), licences et secrets. Il detecte les vulnerabilites (CVE OS + dependances applicatives) et les misconfigurations, et genere des SBOM — un maillon central du DevSecOps shift-left et de la securisation de la chaine d'approvisionnement.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "Trivy : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter Trivy sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer Trivy (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "Trivy dans une chaine CI/CD",
+     "subtitle": "Ou Trivy intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "Trivy en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "Trivy : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  },
+  {
+   "slug": "typescript",
+   "name": "TypeScript",
+   "category": "Langages / Scripting",
+   "role": "TypeScript est un sur-ensemble type de JavaScript qui compile vers du JS standard. Le typage statique structurel detecte les erreurs a la compilation, ameliore la maintenabilite et l'outillage (autocompletion, refactoring sur), et s'impose pour les frontends modernes (React/Next.js), les backends Node (NestJS) et l'outillage IaC (CDK/Pulumi). Generics, types utilitaires et strict mode permettent des bases de code larges, sures et evolutives.",
+   "articles": [
+    {
+     "slug": "fondamentaux",
+     "title": "TypeScript : fondamentaux et architecture",
+     "subtitle": "Le modele mental indispensable pour exploiter TypeScript sans le subir"
+    },
+    {
+     "slug": "installation",
+     "title": "Installer et configurer TypeScript (approche industrialisee)",
+     "subtitle": "Une mise en place reproductible, versionnee et prete pour la production"
+    },
+    {
+     "slug": "cicd",
+     "title": "TypeScript dans une chaine CI/CD",
+     "subtitle": "Ou TypeScript intervient dans le pipeline, et comment le rendre fiable"
+    },
+    {
+     "slug": "production",
+     "title": "TypeScript en production : scalabilite et securite",
+     "subtitle": "Haute disponibilite, mise a l'echelle et durcissement"
+    },
+    {
+     "slug": "depannage",
+     "title": "TypeScript : depannage et bonnes pratiques",
+     "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette"
+    }
+   ]
+  }
+ ],
+ "ai": [
+  {
+   "slug": "fondamentaux-llm",
+   "title": "Fondamentaux des grands modeles de langage (LLM)",
+   "subtitle": "Comment fonctionnent reellement les modeles de langage, du token a la generation"
+  },
+  {
+   "slug": "architecture-transformer",
+   "title": "L'architecture Transformer en profondeur",
+   "subtitle": "Attention, multi-head, normalisation : la mecanique des modeles modernes"
+  },
+  {
+   "slug": "rag",
+   "title": "RAG : Retrieval-Augmented Generation",
+   "subtitle": "Ancrer les LLM dans des connaissances a jour et verifiables"
+  },
+  {
+   "slug": "fine-tuning",
+   "title": "Fine-tuning des LLM : SFT, LoRA, QLoRA",
+   "subtitle": "Specialiser un modele efficacement sans le reentrainer entierement"
+  },
+  {
+   "slug": "prompt-engineering",
+   "title": "Prompt engineering : techniques et methode",
+   "subtitle": "Obtenir des sorties fiables et structurees des LLM"
+  },
+  {
+   "slug": "embeddings-vector-db",
+   "title": "Embeddings et bases de donnees vectorielles",
+   "subtitle": "Representer le sens et rechercher par similarite a l'echelle"
+  },
+  {
+   "slug": "agents-ia",
+   "title": "Agents IA : tool use, planification, orchestration",
+   "subtitle": "Quand un LLM agit : appels d'outils, boucles et garde-fous"
+  },
+  {
+   "slug": "rlhf-alignement",
+   "title": "RLHF et alignement des modeles",
+   "subtitle": "Orienter un modele vers l'utilite et l'innocuite"
+  },
+  {
+   "slug": "diffusion-models",
+   "title": "Modeles de diffusion et generation d'images",
+   "subtitle": "Du bruit a l'image : principes et mise en production"
+  },
+  {
+   "slug": "evaluation-llm",
+   "title": "Evaluation des LLM et des systemes IA",
+   "subtitle": "Mesurer la qualite : benchmarks, golden sets, LLM-as-judge"
+  },
+  {
+   "slug": "securite-ia",
+   "title": "Securite de l'IA : prompt injection et menaces LLM",
+   "subtitle": "OWASP LLM Top 10 : comprendre et mitiger les risques"
+  },
+  {
+   "slug": "llmops",
+   "title": "LLMOps : CI/CD pour applications a base de LLM",
+   "subtitle": "Industrialiser prompts, modeles et evaluations comme du code"
+  },
+  {
+   "slug": "llm-on-prem",
+   "title": "Deployer un LLM en self-hosted / on-premise",
+   "subtitle": "Souverainete, coût et controle : servir ses propres modeles"
+  },
+  {
+   "slug": "quantization",
+   "title": "Quantization et optimisation de l'inference",
+   "subtitle": "Reduire memoire et latence sans sacrifier (trop) la qualite"
+  },
+  {
+   "slug": "aiops",
+   "title": "AIOps : l'IA au service du DevOps et de l'observabilite",
+   "subtitle": "Detection d'anomalies, correlation et reduction du bruit d'alertes"
+  },
+  {
+   "slug": "gpu-infra",
+   "title": "Infrastructure GPU pour l'IA a l'echelle",
+   "subtitle": "Dimensionner, orchestrer et optimiser le coût du calcul GPU"
+  },
+  {
+   "slug": "data-pipelines-ml",
+   "title": "Pipelines de donnees pour le ML/IA",
+   "subtitle": "La qualite des donnees determine la qualite des modeles"
+  },
+  {
+   "slug": "mlops",
+   "title": "MLOps : cycle de vie des modeles en production",
+   "subtitle": "Du notebook a la production fiable, reproductible et surveillee"
+  },
+  {
+   "slug": "ia-responsable",
+   "title": "IA responsable et gouvernance",
+   "subtitle": "Biais, transparence, conformite : deployer l'IA de maniere ethique"
+  },
+  {
+   "slug": "multimodal",
+   "title": "Multimodalite : modeles vision-langage et au-dela",
+   "subtitle": "Quand les modeles comprennent texte, image, audio ensemble"
+  }
+ ],
+ "counts": {
+  "technologies": 40,
+  "techArticles": 200,
+  "aiArticles": 20
+ }
+}

@@ -1,0 +1,734 @@
+{
+ "slug": "gitlab-ci",
+ "name": "GitLab CI/CD",
+ "category": "CI/CD",
+ "role": "GitLab CI/CD est le moteur d'integration et de livraison continues integre nativement a GitLab. Le pipeline est decrit dans un fichier .gitlab-ci.yml versionne, execute par des Runners (shell, Docker, Kubernetes). Il couvre tout le cycle DevSecOps : build, tests, SAST/DAST, conteneurisation, environnements dynamiques (review apps), deploiements multi-stages et Auto DevOps. Son integration registre/Container Registry, environnements et approbations en fait une plateforme de bout en bout, largement utilisee pour industrialiser des dizaines d'applications Spring Boot sur Kubernetes.",
+ "commands": [
+  {
+   "cmd": "gitlab-runner register",
+   "desc": "Enregistrer un runner aupres d'un projet/groupe"
+  },
+  {
+   "cmd": "gitlab-runner run",
+   "desc": "Lancer le runner en mode foreground"
+  },
+  {
+   "cmd": "gitlab-runner verify --delete",
+   "desc": "Verifier et purger les runners obsoletes"
+  },
+  {
+   "cmd": "gitlab-ci-local",
+   "desc": "Executer le pipeline localement avant push"
+  },
+  {
+   "cmd": "stages: [build, test, deploy]",
+   "desc": "Definir l'ordre des etapes"
+  },
+  {
+   "cmd": "script: - mvn -B package",
+   "desc": "Commandes executees par un job"
+  },
+  {
+   "cmd": "rules: - if: '$CI_COMMIT_BRANCH == \"main\"'",
+   "desc": "Conditionner l'execution d'un job"
+  },
+  {
+   "cmd": "artifacts: { paths: [target/*.jar], expire_in: 1 week }",
+   "desc": "Conserver des artefacts"
+  },
+  {
+   "cmd": "cache: { key: $CI_COMMIT_REF_SLUG, paths: [.m2/] }",
+   "desc": "Cache de dependances"
+  },
+  {
+   "cmd": "needs: [build]",
+   "desc": "DAG : demarrer un job des qu'une dependance est prete"
+  },
+  {
+   "cmd": "environment: { name: prod, url: https://app }",
+   "desc": "Declarer un environnement deployable"
+  },
+  {
+   "cmd": "include: { project: 'group/ci-templates', file: '/jobs.yml' }",
+   "desc": "Reutiliser des templates CI"
+  },
+  {
+   "cmd": "trigger: { project: 'group/downstream' }",
+   "desc": "Pipeline multi-projets"
+  },
+  {
+   "cmd": "CI_JOB_TOKEN / CI_REGISTRY",
+   "desc": "Variables predefinies (auth registre)"
+  }
+ ],
+ "articles": [
+  {
+   "slug": "fondamentaux",
+   "title": "GitLab CI/CD : fondamentaux et architecture",
+   "subtitle": "Le modele mental indispensable pour exploiter GitLab CI/CD sans le subir",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article pose les fondamentaux et l'architecture de GitLab CI/CD. Comprendre ces mecanismes est le prerequis pour l'exploiter de maniere fiable, et non comme une boite noire."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait GitLab CI/CD ?"
+    },
+    {
+     "type": "p",
+     "text": "GitLab CI/CD est le moteur d'integration et de livraison continues integre nativement a GitLab. Le pipeline est decrit dans un fichier .gitlab-ci.yml versionne, execute par des Runners (shell, Docker, Kubernetes). Il couvre tout le cycle DevSecOps : build, tests, SAST/DAST, conteneurisation, environnements dynamiques (review apps), deploiements multi-stages et Auto DevOps. Son integration registre/Container Registry, environnements et approbations en fait une plateforme de bout en bout, largement utilisee pour industrialiser des dizaines d'applications Spring Boot sur Kubernetes."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a GitLab CI/CD, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Concepts et architecture"
+    },
+    {
+     "type": "p",
+     "text": "Avant toute mise en oeuvre, il faut un modele mental correct de GitLab CI/CD. Les points suivants constituent la base sans laquelle l'outil reste une boite noire fragile."
+    },
+    {
+     "type": "p",
+     "text": "Le pipeline est un graphe de jobs groupes en stages ; par defaut les stages s'executent en sequence, les jobs d'un stage en parallele. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Les Runners executent les jobs : l'executor Docker fournit une image propre par job, l'executor Kubernetes provisionne un pod ephemere. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "rules/only/except controlent quand un job s'execute (branche, tag, MR, changements de fichiers, variables). Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "needs cree un DAG : un job demarre des que ses dependances sont pretes, sans attendre tout le stage — pipelines plus rapides. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Les environnements (review/staging/prod) tracent les deploiements, autorisent les approbations et le rollback en un clic. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "include + extends + !reference factorisent la configuration ; les CI/CD components packagent des pipelines reutilisables versionnes. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Les variables (projet, groupe, instance, masquees/protegees) et le CI_JOB_TOKEN gerent secrets et authentification inter-projets. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "h2",
+     "text": "Pieges courants et depannage"
+    },
+    {
+     "type": "p",
+     "text": "La plupart des incidents proviennent d'un petit nombre d'erreurs recurrentes. Les reconnaitre tot fait gagner un temps considerable."
+    },
+    {
+     "type": "p",
+     "text": "Pipelines lents car tout en sequence : introduire needs (DAG) et paralleliser les tests. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Cache inefficace (mauvaise key) : utiliser une key stable par lockfile et des politiques pull/push adaptees. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "YAML duplique entre projets : centraliser via include/components versionnes. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Jobs qui passent en local mais echouent en CI : figer l'image, ne pas dependre de l'etat du runner. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Secrets fuites par echo ou artefact : utiliser variables masquees, ne jamais committer de .env. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Sur le projet Worldline OMS (modules XMLCONV, BWB Web Statements, FileNet Archiving), ce type de mise en oeuvre a permis d'industrialiser des pipelines multi-environnements (Dev/Recette/Prod) avec build, tests, packaging et rollbacks automatises, contribuant a la reduction de 40% du temps de deploiement. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Fail fast et stages ordonnes par cout ; lint et tests rapides avant build d'image."
+    },
+    {
+     "type": "li",
+     "text": "Un seul .gitlab-ci.yml lisible s'appuyant sur des templates testes et versionnes par tag."
+    },
+    {
+     "type": "li",
+     "text": "Immutabilite : taguer les images par CI_COMMIT_SHA et promouvoir le meme artefact d'un environnement a l'autre."
+    },
+    {
+     "type": "li",
+     "text": "Environnements declares pour tracabilite, approbations et rollback audit-friendly."
+    },
+    {
+     "type": "li",
+     "text": "Mesurer DORA metrics (lead time, deploy frequency, MTTR, change failure rate) a partir des donnees pipeline."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser GitLab CI/CD ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, GitLab CI/CD devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "installation",
+   "title": "Installer et configurer GitLab CI/CD (approche industrialisee)",
+   "subtitle": "Une mise en place reproductible, versionnee et prete pour la production",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article detaille l'installation et la configuration de GitLab CI/CD selon une approche industrialisee : reproductible, versionnee et prete pour la production des le depart."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait GitLab CI/CD ?"
+    },
+    {
+     "type": "p",
+     "text": "GitLab CI/CD est le moteur d'integration et de livraison continues integre nativement a GitLab. Le pipeline est decrit dans un fichier .gitlab-ci.yml versionne, execute par des Runners (shell, Docker, Kubernetes). Il couvre tout le cycle DevSecOps : build, tests, SAST/DAST, conteneurisation, environnements dynamiques (review apps), deploiements multi-stages et Auto DevOps. Son integration registre/Container Registry, environnements et approbations en fait une plateforme de bout en bout, largement utilisee pour industrialiser des dizaines d'applications Spring Boot sur Kubernetes."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a GitLab CI/CD, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Installation et configuration"
+    },
+    {
+     "type": "p",
+     "text": "Une installation 'qui marche' ne suffit pas : viser des le depart une mise en place reproductible, versionnee et conforme aux contraintes de production."
+    },
+    {
+     "type": "p",
+     "text": "Installer gitlab-runner (paquet ou binaire), l'enregistrer avec un token de projet/groupe, choisir l'executor adapte (Docker recommande). Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Configurer config.toml : concurrent, limites, tags des runners, volumes Docker, cache distribue S3 pour des builds rapides. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Pour Kubernetes, deployer le GitLab Runner via Helm avec autoscaling des pods de build selon la file. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Definir un .gitlab-ci.yml minimal (stages, image par defaut, cache) puis enrichir par include de templates partages. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Activer un cache distribue (S3/MinIO) et un registre proxy pour eviter de re-telecharger les dependances a chaque job. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "h2",
+     "text": "Concepts et architecture"
+    },
+    {
+     "type": "p",
+     "text": "Avant toute mise en oeuvre, il faut un modele mental correct de GitLab CI/CD. Les points suivants constituent la base sans laquelle l'outil reste une boite noire fragile."
+    },
+    {
+     "type": "p",
+     "text": "Le pipeline est un graphe de jobs groupes en stages ; par defaut les stages s'executent en sequence, les jobs d'un stage en parallele. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Les Runners executent les jobs : l'executor Docker fournit une image propre par job, l'executor Kubernetes provisionne un pod ephemere. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "rules/only/except controlent quand un job s'execute (branche, tag, MR, changements de fichiers, variables). En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "needs cree un DAG : un job demarre des que ses dependances sont pretes, sans attendre tout le stage — pipelines plus rapides. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "h2",
+     "text": "Resume des commandes essentielles"
+    },
+    {
+     "type": "p",
+     "text": "Aide-memoire operationnel des commandes et configurations les plus utilisees au quotidien. Chaque entree indique la commande puis son role."
+    },
+    {
+     "type": "cmds",
+     "items": [
+      {
+       "cmd": "gitlab-runner register",
+       "desc": "Enregistrer un runner aupres d'un projet/groupe"
+      },
+      {
+       "cmd": "gitlab-runner run",
+       "desc": "Lancer le runner en mode foreground"
+      },
+      {
+       "cmd": "gitlab-runner verify --delete",
+       "desc": "Verifier et purger les runners obsoletes"
+      },
+      {
+       "cmd": "gitlab-ci-local",
+       "desc": "Executer le pipeline localement avant push"
+      },
+      {
+       "cmd": "stages: [build, test, deploy]",
+       "desc": "Definir l'ordre des etapes"
+      },
+      {
+       "cmd": "script: - mvn -B package",
+       "desc": "Commandes executees par un job"
+      },
+      {
+       "cmd": "rules: - if: '$CI_COMMIT_BRANCH == \"main\"'",
+       "desc": "Conditionner l'execution d'un job"
+      },
+      {
+       "cmd": "artifacts: { paths: [target/*.jar], expire_in: 1 week }",
+       "desc": "Conserver des artefacts"
+      },
+      {
+       "cmd": "cache: { key: $CI_COMMIT_REF_SLUG, paths: [.m2/] }",
+       "desc": "Cache de dependances"
+      },
+      {
+       "cmd": "needs: [build]",
+       "desc": "DAG : demarrer un job des qu'une dependance est prete"
+      },
+      {
+       "cmd": "environment: { name: prod, url: https://app }",
+       "desc": "Declarer un environnement deployable"
+      },
+      {
+       "cmd": "include: { project: 'group/ci-templates', file: '/jobs.yml' }",
+       "desc": "Reutiliser des templates CI"
+      },
+      {
+       "cmd": "trigger: { project: 'group/downstream' }",
+       "desc": "Pipeline multi-projets"
+      },
+      {
+       "cmd": "CI_JOB_TOKEN / CI_REGISTRY",
+       "desc": "Variables predefinies (auth registre)"
+      }
+     ]
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Sur le projet Worldline OMS (modules XMLCONV, BWB Web Statements, FileNet Archiving), ce type de mise en oeuvre a permis d'industrialiser des pipelines multi-environnements (Dev/Recette/Prod) avec build, tests, packaging et rollbacks automatises, contribuant a la reduction de 40% du temps de deploiement. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Fail fast et stages ordonnes par cout ; lint et tests rapides avant build d'image."
+    },
+    {
+     "type": "li",
+     "text": "Un seul .gitlab-ci.yml lisible s'appuyant sur des templates testes et versionnes par tag."
+    },
+    {
+     "type": "li",
+     "text": "Immutabilite : taguer les images par CI_COMMIT_SHA et promouvoir le meme artefact d'un environnement a l'autre."
+    },
+    {
+     "type": "li",
+     "text": "Environnements declares pour tracabilite, approbations et rollback audit-friendly."
+    },
+    {
+     "type": "li",
+     "text": "Mesurer DORA metrics (lead time, deploy frequency, MTTR, change failure rate) a partir des donnees pipeline."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser GitLab CI/CD ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, GitLab CI/CD devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "cicd",
+   "title": "GitLab CI/CD dans une chaine CI/CD",
+   "subtitle": "Ou GitLab CI/CD intervient dans le pipeline, et comment le rendre fiable",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article montre comment integrer GitLab CI/CD dans une chaine CI/CD : ou il intervient, comment le rendre fiable, et comment il accelere et securise la livraison."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait GitLab CI/CD ?"
+    },
+    {
+     "type": "p",
+     "text": "GitLab CI/CD est le moteur d'integration et de livraison continues integre nativement a GitLab. Le pipeline est decrit dans un fichier .gitlab-ci.yml versionne, execute par des Runners (shell, Docker, Kubernetes). Il couvre tout le cycle DevSecOps : build, tests, SAST/DAST, conteneurisation, environnements dynamiques (review apps), deploiements multi-stages et Auto DevOps. Son integration registre/Container Registry, environnements et approbations en fait une plateforme de bout en bout, largement utilisee pour industrialiser des dizaines d'applications Spring Boot sur Kubernetes."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a GitLab CI/CD, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Integration CI/CD et automatisation"
+    },
+    {
+     "type": "p",
+     "text": "L'interet de GitLab CI/CD se revele pleinement une fois integre a un pipeline automatise. Voici comment l'y inserer de maniere fiable."
+    },
+    {
+     "type": "p",
+     "text": "Modeliser un pipeline DevSecOps : build -> tests -> SAST/Secret Detection/Dependency Scanning -> build image -> scan container -> deploy. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Utiliser des review apps : un environnement ephemere deploye par MR, detruit a la fermeture, pour valider avant merge. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Promotion d'environnement via jobs manuels (when: manual) protegeant staging -> production avec approbation. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Mutualiser la logique via CI/CD components/templates versionnes plutot que copier-coller le YAML entre 12+ applications. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Parent-child et multi-project pipelines pour orchestrer des monorepos et des chaines de livraison inter-equipes. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "h2",
+     "text": "Bonnes pratiques eprouvees"
+    },
+    {
+     "type": "p",
+     "text": "Ces principes condensent l'experience operationnelle : ils ne sont pas theoriques mais issus de ce qui evite reellement les incidents."
+    },
+    {
+     "type": "p",
+     "text": "Fail fast et stages ordonnes par cout ; lint et tests rapides avant build d'image. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Un seul .gitlab-ci.yml lisible s'appuyant sur des templates testes et versionnes par tag. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Immutabilite : taguer les images par CI_COMMIT_SHA et promouvoir le meme artefact d'un environnement a l'autre. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Environnements declares pour tracabilite, approbations et rollback audit-friendly. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Mesurer DORA metrics (lead time, deploy frequency, MTTR, change failure rate) a partir des donnees pipeline. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Sur le projet Worldline OMS (modules XMLCONV, BWB Web Statements, FileNet Archiving), ce type de mise en oeuvre a permis d'industrialiser des pipelines multi-environnements (Dev/Recette/Prod) avec build, tests, packaging et rollbacks automatises, contribuant a la reduction de 40% du temps de deploiement. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Fail fast et stages ordonnes par cout ; lint et tests rapides avant build d'image."
+    },
+    {
+     "type": "li",
+     "text": "Un seul .gitlab-ci.yml lisible s'appuyant sur des templates testes et versionnes par tag."
+    },
+    {
+     "type": "li",
+     "text": "Immutabilite : taguer les images par CI_COMMIT_SHA et promouvoir le meme artefact d'un environnement a l'autre."
+    },
+    {
+     "type": "li",
+     "text": "Environnements declares pour tracabilite, approbations et rollback audit-friendly."
+    },
+    {
+     "type": "li",
+     "text": "Mesurer DORA metrics (lead time, deploy frequency, MTTR, change failure rate) a partir des donnees pipeline."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser GitLab CI/CD ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, GitLab CI/CD devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "production",
+   "title": "GitLab CI/CD en production : scalabilite et securite",
+   "subtitle": "Haute disponibilite, mise a l'echelle et durcissement",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article traite de GitLab CI/CD en production : scalabilite, haute disponibilite et securite, avec les exigences propres aux environnements reglementes."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait GitLab CI/CD ?"
+    },
+    {
+     "type": "p",
+     "text": "GitLab CI/CD est le moteur d'integration et de livraison continues integre nativement a GitLab. Le pipeline est decrit dans un fichier .gitlab-ci.yml versionne, execute par des Runners (shell, Docker, Kubernetes). Il couvre tout le cycle DevSecOps : build, tests, SAST/DAST, conteneurisation, environnements dynamiques (review apps), deploiements multi-stages et Auto DevOps. Son integration registre/Container Registry, environnements et approbations en fait une plateforme de bout en bout, largement utilisee pour industrialiser des dizaines d'applications Spring Boot sur Kubernetes."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a GitLab CI/CD, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Production, scalabilite et fiabilite"
+    },
+    {
+     "type": "p",
+     "text": "En production, les exigences changent d'echelle : disponibilite, charge, reprise. Les principes ci-dessous evitent les mauvaises surprises."
+    },
+    {
+     "type": "p",
+     "text": "Runners autoscalables (Kubernetes/Docker Machine) pour absorber les pics sans file d'attente, avec limits CPU/RAM par job. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Cache distribue + registre proxy : reduction drastique du temps de pipeline et de la bande passante. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Environnements proteges + approbations + deployment freeze pour les fenetres de gel bancaires. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Surveiller la duree des pipelines, le taux d'echec et l'utilisation des runners (metriques exportees vers Prometheus/Grafana). Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Strategie de rollback : garder les images taggees par SHA et redeployer une version anterieure via l'API environnements. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "h2",
+     "text": "Securite et durcissement"
+    },
+    {
+     "type": "p",
+     "text": "La securite n'est pas une option ajoutee a la fin : elle se conçoit des l'architecture, surtout en environnement reglemente."
+    },
+    {
+     "type": "p",
+     "text": "Variables masquees et protegees : les secrets ne s'affichent pas dans les logs et ne sont injectes que sur branches protegees. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Activer SAST, Secret Detection, Dependency et Container Scanning natifs pour bloquer la livraison sur vulnerabilite critique. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Restreindre le CI_JOB_TOKEN (scopes inter-projets) et utiliser des runners dedies pour les jobs touchant la production. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Signer les images et appliquer un controle d'admission (cosign/policy) avant deploiement — chaine d'approvisionnement. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Isoler les runners par niveau de sensibilite ; jamais de runner partage non taggue pour des pipelines manipulant des secrets PCI DSS. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Sur le projet Worldline OMS (modules XMLCONV, BWB Web Statements, FileNet Archiving), ce type de mise en oeuvre a permis d'industrialiser des pipelines multi-environnements (Dev/Recette/Prod) avec build, tests, packaging et rollbacks automatises, contribuant a la reduction de 40% du temps de deploiement. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Fail fast et stages ordonnes par cout ; lint et tests rapides avant build d'image."
+    },
+    {
+     "type": "li",
+     "text": "Un seul .gitlab-ci.yml lisible s'appuyant sur des templates testes et versionnes par tag."
+    },
+    {
+     "type": "li",
+     "text": "Immutabilite : taguer les images par CI_COMMIT_SHA et promouvoir le meme artefact d'un environnement a l'autre."
+    },
+    {
+     "type": "li",
+     "text": "Environnements declares pour tracabilite, approbations et rollback audit-friendly."
+    },
+    {
+     "type": "li",
+     "text": "Mesurer DORA metrics (lead time, deploy frequency, MTTR, change failure rate) a partir des donnees pipeline."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser GitLab CI/CD ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, GitLab CI/CD devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "depannage",
+   "title": "GitLab CI/CD : depannage et bonnes pratiques",
+   "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article rassemble le depannage et les bonnes pratiques de GitLab CI/CD : les pieges recurrents, leurs symptomes, et les principes qui evitent la dette operationnelle."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait GitLab CI/CD ?"
+    },
+    {
+     "type": "p",
+     "text": "GitLab CI/CD est le moteur d'integration et de livraison continues integre nativement a GitLab. Le pipeline est decrit dans un fichier .gitlab-ci.yml versionne, execute par des Runners (shell, Docker, Kubernetes). Il couvre tout le cycle DevSecOps : build, tests, SAST/DAST, conteneurisation, environnements dynamiques (review apps), deploiements multi-stages et Auto DevOps. Son integration registre/Container Registry, environnements et approbations en fait une plateforme de bout en bout, largement utilisee pour industrialiser des dizaines d'applications Spring Boot sur Kubernetes."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a GitLab CI/CD, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Pieges courants et depannage"
+    },
+    {
+     "type": "p",
+     "text": "La plupart des incidents proviennent d'un petit nombre d'erreurs recurrentes. Les reconnaitre tot fait gagner un temps considerable."
+    },
+    {
+     "type": "p",
+     "text": "Pipelines lents car tout en sequence : introduire needs (DAG) et paralleliser les tests. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Cache inefficace (mauvaise key) : utiliser une key stable par lockfile et des politiques pull/push adaptees. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "YAML duplique entre projets : centraliser via include/components versionnes. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Jobs qui passent en local mais echouent en CI : figer l'image, ne pas dependre de l'etat du runner. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Secrets fuites par echo ou artefact : utiliser variables masquees, ne jamais committer de .env. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "h2",
+     "text": "Bonnes pratiques eprouvees"
+    },
+    {
+     "type": "p",
+     "text": "Ces principes condensent l'experience operationnelle : ils ne sont pas theoriques mais issus de ce qui evite reellement les incidents."
+    },
+    {
+     "type": "p",
+     "text": "Fail fast et stages ordonnes par cout ; lint et tests rapides avant build d'image. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Un seul .gitlab-ci.yml lisible s'appuyant sur des templates testes et versionnes par tag. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Immutabilite : taguer les images par CI_COMMIT_SHA et promouvoir le meme artefact d'un environnement a l'autre. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Environnements declares pour tracabilite, approbations et rollback audit-friendly. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Mesurer DORA metrics (lead time, deploy frequency, MTTR, change failure rate) a partir des donnees pipeline. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Sur le projet Worldline OMS (modules XMLCONV, BWB Web Statements, FileNet Archiving), ce type de mise en oeuvre a permis d'industrialiser des pipelines multi-environnements (Dev/Recette/Prod) avec build, tests, packaging et rollbacks automatises, contribuant a la reduction de 40% du temps de deploiement. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Fail fast et stages ordonnes par cout ; lint et tests rapides avant build d'image."
+    },
+    {
+     "type": "li",
+     "text": "Un seul .gitlab-ci.yml lisible s'appuyant sur des templates testes et versionnes par tag."
+    },
+    {
+     "type": "li",
+     "text": "Immutabilite : taguer les images par CI_COMMIT_SHA et promouvoir le meme artefact d'un environnement a l'autre."
+    },
+    {
+     "type": "li",
+     "text": "Environnements declares pour tracabilite, approbations et rollback audit-friendly."
+    },
+    {
+     "type": "li",
+     "text": "Mesurer DORA metrics (lead time, deploy frequency, MTTR, change failure rate) a partir des donnees pipeline."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser GitLab CI/CD ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, GitLab CI/CD devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  }
+ ]
+}

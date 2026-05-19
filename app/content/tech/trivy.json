@@ -1,0 +1,714 @@
+{
+ "slug": "trivy",
+ "name": "Trivy",
+ "category": "Securite DevSecOps",
+ "role": "Trivy (Aqua Security) est un scanner de securite open-source tout-en-un, rapide et sans serveur : images conteneur, systemes de fichiers, depots Git, IaC (Terraform/K8s/Dockerfile), licences et secrets. Il detecte les vulnerabilites (CVE OS + dependances applicatives) et les misconfigurations, et genere des SBOM — un maillon central du DevSecOps shift-left et de la securisation de la chaine d'approvisionnement.",
+ "commands": [
+  {
+   "cmd": "trivy image reg/app:1.2.0",
+   "desc": "Scanner une image conteneur"
+  },
+  {
+   "cmd": "trivy image --severity HIGH,CRITICAL --exit-code 1 IMG",
+   "desc": "Echouer le build sur CVE grave"
+  },
+  {
+   "cmd": "trivy fs --scanners vuln,secret,misconfig .",
+   "desc": "Scanner le code/projet"
+  },
+  {
+   "cmd": "trivy config ./terraform",
+   "desc": "Scanner l'IaC (misconfig)"
+  },
+  {
+   "cmd": "trivy repo https://github.com/org/repo",
+   "desc": "Scanner un depot"
+  },
+  {
+   "cmd": "trivy k8s --report summary cluster",
+   "desc": "Scanner un cluster Kubernetes"
+  },
+  {
+   "cmd": "trivy image --format cyclonedx -o sbom.json IMG",
+   "desc": "Generer un SBOM"
+  },
+  {
+   "cmd": "trivy image --ignore-unfixed IMG",
+   "desc": "Ignorer les CVE sans correctif"
+  },
+  {
+   "cmd": "trivy image --format sarif -o r.sarif IMG",
+   "desc": "Sortie SARIF (GitHub Security)"
+  },
+  {
+   "cmd": "trivy --cache-dir .cache image IMG",
+   "desc": "Cache de la base de vulns"
+  },
+  {
+   "cmd": "trivy convert --format table r.json",
+   "desc": "Convertir un rapport"
+  },
+  {
+   "cmd": ".trivyignore",
+   "desc": "Acceptation tracee de findings"
+  }
+ ],
+ "articles": [
+  {
+   "slug": "fondamentaux",
+   "title": "Trivy : fondamentaux et architecture",
+   "subtitle": "Le modele mental indispensable pour exploiter Trivy sans le subir",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article pose les fondamentaux et l'architecture de Trivy. Comprendre ces mecanismes est le prerequis pour l'exploiter de maniere fiable, et non comme une boite noire."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait Trivy ?"
+    },
+    {
+     "type": "p",
+     "text": "Trivy (Aqua Security) est un scanner de securite open-source tout-en-un, rapide et sans serveur : images conteneur, systemes de fichiers, depots Git, IaC (Terraform/K8s/Dockerfile), licences et secrets. Il detecte les vulnerabilites (CVE OS + dependances applicatives) et les misconfigurations, et genere des SBOM — un maillon central du DevSecOps shift-left et de la securisation de la chaine d'approvisionnement."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a Trivy, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Concepts et architecture"
+    },
+    {
+     "type": "p",
+     "text": "Avant toute mise en oeuvre, il faut un modele mental correct de Trivy. Les points suivants constituent la base sans laquelle l'outil reste une boite noire fragile."
+    },
+    {
+     "type": "p",
+     "text": "Scanner unifie : vulnerabilites (OS + libs applicatives), misconfig IaC, secrets, licences, SBOM. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Sans serveur : un binaire, base de vulns mise a jour automatiquement (cache possible). En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Exit codes pilotables : echouer le pipeline selon la severite (gate securite). Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Formats : table, JSON, SARIF (GitHub), CycloneDX/SPDX (SBOM). Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "--ignore-unfixed reduit le bruit ; .trivyignore trace les acceptations de risque. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Cible images, fs, repo, IaC, Kubernetes — couverture supply chain large. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "h2",
+     "text": "Pieges courants et depannage"
+    },
+    {
+     "type": "p",
+     "text": "La plupart des incidents proviennent d'un petit nombre d'erreurs recurrentes. Les reconnaitre tot fait gagner un temps considerable."
+    },
+    {
+     "type": "p",
+     "text": "Scan informatif non bloquant : ajouter --exit-code 1. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Bruit des CVE non corrigeables : --ignore-unfixed + tri par severite. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": ".trivyignore fourre-tout sans justification : dette de securite cachee. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Pas de re-scan : images deployees vulnerables aux nouvelles CVE. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "DB non cachee : jobs lents/fragiles hors-ligne. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Integre aux pipelines bancaires (HPS PowerCARD, conformite PCI DSS), ce controle a permis de bloquer en amont vulnerabilites et regressions, renforcant la gestion des secrets et le durcissement (RBAC). C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Gate bloquant HIGH/CRITICAL, --ignore-unfixed pour le bruit."
+    },
+    {
+     "type": "li",
+     "text": ".trivyignore versionne, justifie, expirant."
+    },
+    {
+     "type": "li",
+     "text": "SBOM genere/archive, sortie SARIF au dashboard securite."
+    },
+    {
+     "type": "li",
+     "text": "trivy-operator + admission policy en cluster."
+    },
+    {
+     "type": "li",
+     "text": "Re-scan periodique, signature Cosign couplee."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser Trivy ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, Trivy devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "installation",
+   "title": "Installer et configurer Trivy (approche industrialisee)",
+   "subtitle": "Une mise en place reproductible, versionnee et prete pour la production",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article detaille l'installation et la configuration de Trivy selon une approche industrialisee : reproductible, versionnee et prete pour la production des le depart."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait Trivy ?"
+    },
+    {
+     "type": "p",
+     "text": "Trivy (Aqua Security) est un scanner de securite open-source tout-en-un, rapide et sans serveur : images conteneur, systemes de fichiers, depots Git, IaC (Terraform/K8s/Dockerfile), licences et secrets. Il detecte les vulnerabilites (CVE OS + dependances applicatives) et les misconfigurations, et genere des SBOM — un maillon central du DevSecOps shift-left et de la securisation de la chaine d'approvisionnement."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a Trivy, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Installation et configuration"
+    },
+    {
+     "type": "p",
+     "text": "Une installation 'qui marche' ne suffit pas : viser des le depart une mise en place reproductible, versionnee et conforme aux contraintes de production."
+    },
+    {
+     "type": "p",
+     "text": "Binaire/conteneur ; mettre en cache la DB de vulnerabilites pour les jobs CI. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Definir une politique de severite (HIGH/CRITICAL bloquant) et --ignore-unfixed. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": ".trivyignore versionne avec justification/expiration des exceptions. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Integration Operator (trivy-operator) pour le scan continu en cluster. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Sorties SARIF remontees au tableau de bord securite (GitHub/GitLab). Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "h2",
+     "text": "Concepts et architecture"
+    },
+    {
+     "type": "p",
+     "text": "Avant toute mise en oeuvre, il faut un modele mental correct de Trivy. Les points suivants constituent la base sans laquelle l'outil reste une boite noire fragile."
+    },
+    {
+     "type": "p",
+     "text": "Scanner unifie : vulnerabilites (OS + libs applicatives), misconfig IaC, secrets, licences, SBOM. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Sans serveur : un binaire, base de vulns mise a jour automatiquement (cache possible). Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "Exit codes pilotables : echouer le pipeline selon la severite (gate securite). Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Formats : table, JSON, SARIF (GitHub), CycloneDX/SPDX (SBOM). En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "h2",
+     "text": "Resume des commandes essentielles"
+    },
+    {
+     "type": "p",
+     "text": "Aide-memoire operationnel des commandes et configurations les plus utilisees au quotidien. Chaque entree indique la commande puis son role."
+    },
+    {
+     "type": "cmds",
+     "items": [
+      {
+       "cmd": "trivy image reg/app:1.2.0",
+       "desc": "Scanner une image conteneur"
+      },
+      {
+       "cmd": "trivy image --severity HIGH,CRITICAL --exit-code 1 IMG",
+       "desc": "Echouer le build sur CVE grave"
+      },
+      {
+       "cmd": "trivy fs --scanners vuln,secret,misconfig .",
+       "desc": "Scanner le code/projet"
+      },
+      {
+       "cmd": "trivy config ./terraform",
+       "desc": "Scanner l'IaC (misconfig)"
+      },
+      {
+       "cmd": "trivy repo https://github.com/org/repo",
+       "desc": "Scanner un depot"
+      },
+      {
+       "cmd": "trivy k8s --report summary cluster",
+       "desc": "Scanner un cluster Kubernetes"
+      },
+      {
+       "cmd": "trivy image --format cyclonedx -o sbom.json IMG",
+       "desc": "Generer un SBOM"
+      },
+      {
+       "cmd": "trivy image --ignore-unfixed IMG",
+       "desc": "Ignorer les CVE sans correctif"
+      },
+      {
+       "cmd": "trivy image --format sarif -o r.sarif IMG",
+       "desc": "Sortie SARIF (GitHub Security)"
+      },
+      {
+       "cmd": "trivy --cache-dir .cache image IMG",
+       "desc": "Cache de la base de vulns"
+      },
+      {
+       "cmd": "trivy convert --format table r.json",
+       "desc": "Convertir un rapport"
+      },
+      {
+       "cmd": ".trivyignore",
+       "desc": "Acceptation tracee de findings"
+      }
+     ]
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Integre aux pipelines bancaires (HPS PowerCARD, conformite PCI DSS), ce controle a permis de bloquer en amont vulnerabilites et regressions, renforcant la gestion des secrets et le durcissement (RBAC). Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Gate bloquant HIGH/CRITICAL, --ignore-unfixed pour le bruit."
+    },
+    {
+     "type": "li",
+     "text": ".trivyignore versionne, justifie, expirant."
+    },
+    {
+     "type": "li",
+     "text": "SBOM genere/archive, sortie SARIF au dashboard securite."
+    },
+    {
+     "type": "li",
+     "text": "trivy-operator + admission policy en cluster."
+    },
+    {
+     "type": "li",
+     "text": "Re-scan periodique, signature Cosign couplee."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser Trivy ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, Trivy devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "cicd",
+   "title": "Trivy dans une chaine CI/CD",
+   "subtitle": "Ou Trivy intervient dans le pipeline, et comment le rendre fiable",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article montre comment integrer Trivy dans une chaine CI/CD : ou il intervient, comment le rendre fiable, et comment il accelere et securise la livraison."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait Trivy ?"
+    },
+    {
+     "type": "p",
+     "text": "Trivy (Aqua Security) est un scanner de securite open-source tout-en-un, rapide et sans serveur : images conteneur, systemes de fichiers, depots Git, IaC (Terraform/K8s/Dockerfile), licences et secrets. Il detecte les vulnerabilites (CVE OS + dependances applicatives) et les misconfigurations, et genere des SBOM — un maillon central du DevSecOps shift-left et de la securisation de la chaine d'approvisionnement."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a Trivy, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Integration CI/CD et automatisation"
+    },
+    {
+     "type": "p",
+     "text": "L'interet de Trivy se revele pleinement une fois integre a un pipeline automatise. Voici comment l'y inserer de maniere fiable."
+    },
+    {
+     "type": "p",
+     "text": "Gate : scan image avant push registry, --exit-code 1 sur HIGH/CRITICAL. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Scan IaC (trivy config) et secrets en complement du SAST. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "SBOM (CycloneDX) genere et archive pour la tracabilite supply chain. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Resultats SARIF dans l'onglet Security ; PR bloquee sur findings. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Cache DB pour des scans rapides et resilients (offline-friendly). Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "h2",
+     "text": "Bonnes pratiques eprouvees"
+    },
+    {
+     "type": "p",
+     "text": "Ces principes condensent l'experience operationnelle : ils ne sont pas theoriques mais issus de ce qui evite reellement les incidents."
+    },
+    {
+     "type": "p",
+     "text": "Gate bloquant HIGH/CRITICAL, --ignore-unfixed pour le bruit. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": ".trivyignore versionne, justifie, expirant. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "SBOM genere/archive, sortie SARIF au dashboard securite. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "trivy-operator + admission policy en cluster. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Re-scan periodique, signature Cosign couplee. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Integre aux pipelines bancaires (HPS PowerCARD, conformite PCI DSS), ce controle a permis de bloquer en amont vulnerabilites et regressions, renforcant la gestion des secrets et le durcissement (RBAC). La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Gate bloquant HIGH/CRITICAL, --ignore-unfixed pour le bruit."
+    },
+    {
+     "type": "li",
+     "text": ".trivyignore versionne, justifie, expirant."
+    },
+    {
+     "type": "li",
+     "text": "SBOM genere/archive, sortie SARIF au dashboard securite."
+    },
+    {
+     "type": "li",
+     "text": "trivy-operator + admission policy en cluster."
+    },
+    {
+     "type": "li",
+     "text": "Re-scan periodique, signature Cosign couplee."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser Trivy ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, Trivy devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "production",
+   "title": "Trivy en production : scalabilite et securite",
+   "subtitle": "Haute disponibilite, mise a l'echelle et durcissement",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article traite de Trivy en production : scalabilite, haute disponibilite et securite, avec les exigences propres aux environnements reglementes."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait Trivy ?"
+    },
+    {
+     "type": "p",
+     "text": "Trivy (Aqua Security) est un scanner de securite open-source tout-en-un, rapide et sans serveur : images conteneur, systemes de fichiers, depots Git, IaC (Terraform/K8s/Dockerfile), licences et secrets. Il detecte les vulnerabilites (CVE OS + dependances applicatives) et les misconfigurations, et genere des SBOM — un maillon central du DevSecOps shift-left et de la securisation de la chaine d'approvisionnement."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a Trivy, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Production, scalabilite et fiabilite"
+    },
+    {
+     "type": "p",
+     "text": "En production, les exigences changent d'echelle : disponibilite, charge, reprise. Les principes ci-dessous evitent les mauvaises surprises."
+    },
+    {
+     "type": "p",
+     "text": "trivy-operator : scan continu des charges en cluster + reports CRD. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Politique d'admission refusant les images non scannees/vulnerables. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Re-scan periodique (nouvelles CVE sur images deja deployees). Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Tableau de bord de posture (severites, tendances) suivi en KPI. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "SBOM conserve pour reponse rapide aux CVE type Log4Shell. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "h2",
+     "text": "Securite et durcissement"
+    },
+    {
+     "type": "p",
+     "text": "La securite n'est pas une option ajoutee a la fin : elle se conçoit des l'architecture, surtout en environnement reglemente."
+    },
+    {
+     "type": "p",
+     "text": "Detection CVE + secrets + misconfig = defense en profondeur shift-left. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "p",
+     "text": "Acceptations de risque tracees/expirantes (.trivyignore revue). En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": "Couple a la signature (Cosign) et a l'admission policy. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Pas de secret dans les images (scanner secret le verifie). Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "Conformite PCI DSS : scan obligatoire avant promotion. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Integre aux pipelines bancaires (HPS PowerCARD, conformite PCI DSS), ce controle a permis de bloquer en amont vulnerabilites et regressions, renforcant la gestion des secrets et le durcissement (RBAC). La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Gate bloquant HIGH/CRITICAL, --ignore-unfixed pour le bruit."
+    },
+    {
+     "type": "li",
+     "text": ".trivyignore versionne, justifie, expirant."
+    },
+    {
+     "type": "li",
+     "text": "SBOM genere/archive, sortie SARIF au dashboard securite."
+    },
+    {
+     "type": "li",
+     "text": "trivy-operator + admission policy en cluster."
+    },
+    {
+     "type": "li",
+     "text": "Re-scan periodique, signature Cosign couplee."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser Trivy ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, Trivy devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  },
+  {
+   "slug": "depannage",
+   "title": "Trivy : depannage et bonnes pratiques",
+   "subtitle": "Pieges recurrents, symptomes et principes qui evitent la dette",
+   "blocks": [
+    {
+     "type": "lead",
+     "text": "Cet article rassemble le depannage et les bonnes pratiques de Trivy : les pieges recurrents, leurs symptomes, et les principes qui evitent la dette operationnelle."
+    },
+    {
+     "type": "h2",
+     "text": "Role : que fait Trivy ?"
+    },
+    {
+     "type": "p",
+     "text": "Trivy (Aqua Security) est un scanner de securite open-source tout-en-un, rapide et sans serveur : images conteneur, systemes de fichiers, depots Git, IaC (Terraform/K8s/Dockerfile), licences et secrets. Il detecte les vulnerabilites (CVE OS + dependances applicatives) et les misconfigurations, et genere des SBOM — un maillon central du DevSecOps shift-left et de la securisation de la chaine d'approvisionnement."
+    },
+    {
+     "type": "p",
+     "text": "Cet article fait partie d'une serie de cinq consacree a Trivy, abordant successivement les fondamentaux, l'installation, l'integration CI/CD, la production et le depannage. Chaque volet est autonome et orienté pratique d'ingenierie."
+    },
+    {
+     "type": "h2",
+     "text": "Pieges courants et depannage"
+    },
+    {
+     "type": "p",
+     "text": "La plupart des incidents proviennent d'un petit nombre d'erreurs recurrentes. Les reconnaitre tot fait gagner un temps considerable."
+    },
+    {
+     "type": "p",
+     "text": "Scan informatif non bloquant : ajouter --exit-code 1. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "Bruit des CVE non corrigeables : --ignore-unfixed + tri par severite. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": ".trivyignore fourre-tout sans justification : dette de securite cachee. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Pas de re-scan : images deployees vulnerables aux nouvelles CVE. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "p",
+     "text": "DB non cachee : jobs lents/fragiles hors-ligne. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. On documente la decision et son contexte afin qu'un nouvel arrivant puisse la comprendre sans solliciter l'auteur. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien. Il doit rester observable : expose en metriques et en alerting pour ne jamais sortir du champ de controle."
+    },
+    {
+     "type": "h2",
+     "text": "Bonnes pratiques eprouvees"
+    },
+    {
+     "type": "p",
+     "text": "Ces principes condensent l'experience operationnelle : ils ne sont pas theoriques mais issus de ce qui evite reellement les incidents."
+    },
+    {
+     "type": "p",
+     "text": "Gate bloquant HIGH/CRITICAL, --ignore-unfixed pour le bruit. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. En mise en oeuvre, on commence par le formaliser dans un environnement de recette avant toute promotion vers la production. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable. Il gagne a etre standardise via un template, un role ou une bibliotheque partagee pour passer a l'echelle sans duplication."
+    },
+    {
+     "type": "p",
+     "text": ".trivyignore versionne, justifie, expirant. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La regle d'or est de valider ce comportement par un test automatise qui echoue explicitement en cas de regression. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois. Il se documente et s'accompagne d'un runbook : la connaissance operationnelle ne doit pas dependre d'une seule personne."
+    },
+    {
+     "type": "p",
+     "text": "SBOM genere/archive, sortie SARIF au dashboard securite. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). Concretement, on l'inscrit dans la revue de code et dans la definition of done de l'equipe, pas dans une procedure orale. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables. Cet element s'integre naturellement dans un pipeline industrialise, revu en code et versionne avec l'application."
+    },
+    {
+     "type": "p",
+     "text": "trivy-operator + admission policy en cluster. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. On le rend mesurable : un indicateur dedie dans le tableau de bord permet d'en suivre l'evolution dans le temps. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR. Il se traite comme du code : versionne, teste, et promu a l'identique d'un environnement a l'autre, sans reconstruction."
+    },
+    {
+     "type": "p",
+     "text": "Re-scan periodique, signature Cosign couplee. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le bon niveau d'automatisation consiste a ce qu'aucune action manuelle non tracee ne soit necessaire pour le garantir. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement. Il s'inscrit dans une demarche GitOps/DevSecOps de bout en bout, ou Git reste l'unique source de verite."
+    },
+    {
+     "type": "h2",
+     "text": "Cas concret (contexte projet)"
+    },
+    {
+     "type": "p",
+     "text": "Integre aux pipelines bancaires (HPS PowerCARD, conformite PCI DSS), ce controle a permis de bloquer en amont vulnerabilites et regressions, renforcant la gestion des secrets et le durcissement (RBAC). La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+    },
+    {
+     "type": "h2",
+     "text": "Synthese : bonnes pratiques"
+    },
+    {
+     "type": "li",
+     "text": "Gate bloquant HIGH/CRITICAL, --ignore-unfixed pour le bruit."
+    },
+    {
+     "type": "li",
+     "text": ".trivyignore versionne, justifie, expirant."
+    },
+    {
+     "type": "li",
+     "text": "SBOM genere/archive, sortie SARIF au dashboard securite."
+    },
+    {
+     "type": "li",
+     "text": "trivy-operator + admission policy en cluster."
+    },
+    {
+     "type": "li",
+     "text": "Re-scan periodique, signature Cosign couplee."
+    },
+    {
+     "type": "h2",
+     "text": "Conclusion"
+    },
+    {
+     "type": "p",
+     "text": "Maitriser Trivy ne se limite pas a connaitre des commandes : il s'agit de l'integrer dans une demarche d'ingenierie reproductible, observable et securisee. Applique avec rigueur, Trivy devient un levier mesurable de fiabilite et de velocite des cycles de livraison."
+    }
+   ]
+  }
+ ]
+}

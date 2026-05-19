@@ -1,0 +1,143 @@
+{
+ "slug": "fondamentaux-llm",
+ "title": "Fondamentaux des grands modeles de langage (LLM)",
+ "subtitle": "Comment fonctionnent reellement les modeles de langage, du token a la generation",
+ "blocks": [
+  {
+   "type": "lead",
+   "text": "Comment fonctionnent reellement les modeles de langage, du token a la generation."
+  },
+  {
+   "type": "p",
+   "text": "Cet article fait partie d'une serie de vingt analyses approfondies sur l'intelligence artificielle generative et son industrialisation. L'angle retenu est resolument ingenierie : ce qui fait fonctionner ces systemes en production, leurs limites et leur gouvernance."
+  },
+  {
+   "type": "h2",
+   "text": "Qu'est-ce qu'un LLM"
+  },
+  {
+   "type": "p",
+   "text": "Un LLM est un reseau de neurones entraine a predire le prochain token a partir d'un contexte, sur des corpus massifs (centaines de milliards de tokens). Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR."
+  },
+  {
+   "type": "p",
+   "text": "Le modele apprend une distribution de probabilite sur le vocabulaire ; la 'comprehension' emerge de la compression statistique du langage. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement."
+  },
+  {
+   "type": "p",
+   "text": "Les capacites (raisonnement, traduction, code) emergent avec l'echelle (parametres, donnees, calcul) selon des lois d'echelle empiriques. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree."
+  },
+  {
+   "type": "p",
+   "text": "Un LLM ne 'sait' rien au sens factuel : il modelise des correlations linguistiques, d'ou les hallucinations. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+  },
+  {
+   "type": "h2",
+   "text": "Tokenisation et representation"
+  },
+  {
+   "type": "p",
+   "text": "Le texte est decoupe en tokens (sous-mots, ex. BPE/SentencePiece) puis projete en vecteurs (embeddings) appris. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable."
+  },
+  {
+   "type": "p",
+   "text": "La fenetre de contexte (nombre de tokens traitables) borne ce que le modele 'voit' simultanement — facteur cle de cout et de capacite. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois."
+  },
+  {
+   "type": "p",
+   "text": "Les positions sont encodees (rotary/ALiBi) pour que le modele tienne compte de l'ordre des tokens. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables."
+  },
+  {
+   "type": "p",
+   "text": "Le meme texte coute differemment en tokens selon la langue — impact direct sur le cout d'inference. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR."
+  },
+  {
+   "type": "h2",
+   "text": "Pre-entrainement, fine-tuning, alignement"
+  },
+  {
+   "type": "p",
+   "text": "Pre-entrainement auto-supervise (prediction du token suivant) sur du texte brut : la phase la plus couteuse. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement."
+  },
+  {
+   "type": "p",
+   "text": "Fine-tuning supervise (SFT) sur des paires instruction/reponse pour rendre le modele 'instructable'. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree."
+  },
+  {
+   "type": "p",
+   "text": "Alignement (RLHF/DPO) pour orienter le comportement vers l'utilite et l'innocuite. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+  },
+  {
+   "type": "p",
+   "text": "Le modele de base et le modele aligne ont des comportements tres differents a prompt egal. Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable."
+  },
+  {
+   "type": "h2",
+   "text": "Inference et parametres de generation"
+  },
+  {
+   "type": "p",
+   "text": "La generation est auto-regressive : chaque token genere est reinjecte — d'ou la latence proportionnelle a la longueur. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois."
+  },
+  {
+   "type": "p",
+   "text": "Temperature, top-p/top-k controlent l'aleatoire ; bas = deterministe/factuel, haut = creatif/divergent. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables."
+  },
+  {
+   "type": "p",
+   "text": "Le KV-cache evite de recalculer l'attention sur le passe — pilier de la performance d'inference. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR."
+  },
+  {
+   "type": "p",
+   "text": "Le coût se mesure en tokens d'entree + de sortie ; la sortie est generalement plus chere. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement."
+  },
+  {
+   "type": "h2",
+   "text": "Limites et bonnes pratiques"
+  },
+  {
+   "type": "p",
+   "text": "Hallucinations : un LLM produit un texte plausible, pas necessairement vrai — ancrer via RAG/outils. Concretement, ce point conditionne la fiabilite et la reproductibilite de toute la chaine de livraison : un ecart ici se propage a l'ensemble des environnements. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree."
+  },
+  {
+   "type": "p",
+   "text": "Connaissances figees a la date d'entrainement (knowledge cutoff) — fournir le contexte a jour. En pratique, c'est un facteur direct de stabilite en production et de reduction du temps de diagnostic lorsqu'un incident survient. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. La consequence est une plateforme plus previsible, plus sure et nettement moins couteuse a operer au quotidien."
+  },
+  {
+   "type": "p",
+   "text": "Sensibilite au prompt : petites variations, grands ecarts — d'ou l'ingenierie de prompt. Bien maitrise, cet aspect reduit les interventions manuelles et securise les cycles de deploiement, ce qui est precisement l'objectif d'une demarche DevOps mature. Sur le plan operationnel, la mise en oeuvre doit etre idempotente : pouvoir etre rejouee sans effet de bord ni divergence d'etat. Le risque, sinon, est une derive silencieuse de configuration entre environnements (le fameux 'ca marche chez moi'). C'est precisement ce qui distingue une automatisation robuste d'un assemblage fragile de scripts difficilement maintenable."
+  },
+  {
+   "type": "p",
+   "text": "Toujours valider/contraindre les sorties critiques (schema, verification, garde-fous). Ignore, il devient une source recurrente d'incidents difficiles a tracer, car la cause racine est souvent loin du symptome observe. Le principe directeur reste l'immuabilite : on remplace plutot qu'on modifie en place, ce qui rend chaque etat reproductible. A defaut, on s'expose a des deploiements non reproductibles, impossibles a rejouer a l'identique en cas d'incident. A l'echelle de dizaines d'applications, cet ecart de rigueur se traduit en jours d'exploitation economises chaque mois."
+  },
+  {
+   "type": "h2",
+   "text": "Enjeux operationnels (DevOps/MLOps)"
+  },
+  {
+   "type": "p",
+   "text": "Observabilite : tracer prompts, tokens, latence, coût et taux d'echec comme des SLI. C'est l'un des leviers les plus rentables pour fiabiliser des environnements multi-equipes ou la moindre divergence de configuration coute cher. La regle pratique est de rendre l'operation deterministe : memes entrees, meme resultat, quel que soit l'environnement. Sans cette discipline, le rollback devient incertain, ce qui allonge dangereusement le temps de reprise en cas de panne. C'est aussi un facteur de serenite pour les equipes d'astreinte, qui passent moins de nuits sur des incidents evitables."
+  },
+  {
+   "type": "p",
+   "text": "Reproductibilite : versionner prompts, modeles et parametres comme du code. Dans un contexte reglemente (bancaire / PCI DSS), c'est aussi une exigence d'auditabilite : ce qui n'est pas tracable n'est pas conforme. Le bon reflexe est de separer clairement configuration et code, et d'externaliser tout ce qui varie par environnement. Neglige, ce point cree un point de defaillance unique et une dependance a la connaissance tacite d'un individu. L'impact se mesure directement sur les indicateurs DORA : lead time, frequence de deploiement, taux d'echec des changements et MTTR."
+  },
+  {
+   "type": "p",
+   "text": "Coût et latence sont les contraintes de production dominantes — caching, batching, quantization. Ce point fait souvent la difference entre une plateforme que l'on subit et une plateforme que l'on pilote. Il convient d'appliquer le moindre privilege : n'accorder que les droits strictement necessaires a l'execution. L'absence de maitrise ici se paie en incidents de production et en perte de confiance dans la chaine de livraison. L'effet est tangible sur le temps de mise en production et sur la qualite percue par les equipes de developpement."
+  },
+  {
+   "type": "p",
+   "text": "Securite : prompt injection, fuite de donnees, dependance fournisseur a gouverner. Le negliger revient a accumuler une dette technique invisible jusqu'au jour ou elle bloque une livraison critique. L'approche saine consiste a echouer vite et explicitement plutot qu'a masquer une erreur qui resurgira plus tard. Le danger est d'introduire une faille de securite ou une non-conformite qui ne sera detectee qu'a l'audit. Le retour sur investissement apparait des les premiers cycles de livraison automatises, puis se compose dans la duree."
+  },
+  {
+   "type": "h2",
+   "text": "Ce qu'il faut retenir"
+  },
+  {
+   "type": "p",
+   "text": "L'IA generative n'est pas une formule magique mais un systeme a ingenierie : donnees, evaluation, securite, coût et observabilite decident du succes en production. Les principes ci-dessus forment une base solide pour concevoir des systemes IA fiables et gouvernes."
+  }
+ ]
+}
