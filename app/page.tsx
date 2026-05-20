@@ -1,15 +1,11 @@
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
-import { HomeCV } from './components/HomeCV';
-import { About } from './components/About';
-import { Experience } from './components/Experience';
+import { Journey } from './components/Journey';
 import { Projects } from './components/Projects';
 import { SallyCardsShowcase } from './components/SallyCardsShowcase';
-import { Testing } from './components/Testing';
 import { Skills } from './components/Skills';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
-import Monitoring from './components/Monitoring';
 
 /**
  * Salistar portfolio home — premium blue identity aligned with
@@ -47,13 +43,9 @@ export default function Home() {
 
       <Navbar />
       <Hero />
-      <HomeCV />
+      <Journey />
       <Projects />
-      <About />
-      <Experience />
       <SallyCardsShowcase />
-      <Testing />
-      <Monitoring />
       <Skills />
       <Contact />
       <Footer />

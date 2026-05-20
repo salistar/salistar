@@ -3,14 +3,14 @@
  * @file app/components/Pipeline.tsx
  * @description Schema anime "Local -> GitHub -> CI/CD -> Cloud" (trilingue).
  */
-import { Laptop, Github, Cog, Cloud, ChevronRight } from 'lucide-react';
+import { Laptop, Github, Cog, Server, ChevronRight } from 'lucide-react';
 import { useLang } from '../lib/i18n';
 
 const STEPS = [
   { key: 'local', icon: Laptop, color: '#60A5FA' },
   { key: 'github', icon: Github, color: '#F8FAFC' },
   { key: 'cicd', icon: Cog, color: '#FCD34D' },
-  { key: 'cloud', icon: Cloud, color: '#34d399' },
+  { key: 'vps', icon: Server, color: '#34d399' },
 ] as const;
 
 export function Pipeline({ compact = false }: { compact?: boolean }) {

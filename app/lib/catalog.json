@@ -335,7 +335,7 @@
   },
   "ar": {
    "lang": "ar",
-   "name": "إدريس قريويل",
+   "name": "إدريس كريويل",
    "title": "مهندس DevOps أول · مدير اختبار الجودة · قائد تقني DevOps و QA",
    "status": "متاح خلال شهر — الدار البيضاء / كل المغرب · تنقل وعمل عن بعد",
    "profile": "مهندس DevOps وقائد تقني بخبرة تفوق 8 سنوات تشمل تصميم خطوط CI/CD، وأتمتة الاختبارات (QA)، وتصنيع وتشغيل بنى سحابية أصلية لبيئات بنكية ومؤسسات كبرى (Worldline، سوسيتيه جنرال المغرب، HPS، مجموعة روشيه). خبرة مزدوجة في DevOps وإدارة اختبار الجودة: Jenkins وGitLab CI وGitHub Actions وKubernetes وHelm وGitOps (ArgoCD/Flux) وTerraform وAnsible؛ بالإضافة إلى استراتيجية الاختبار وRobot Framework وPlaywright وCypress وSelenium وJMeter وPostman ودمج QA في الخطوط. قيادة فرق، ونهج local ← GitHub ← CI/CD ← السحابة، وخفض 70% من التدخلات اليدوية و40% من زمن النشر و60% من أخطاء الإنتاج. يتقن الفرنسية والإنجليزية والعربية.",
@@ -495,9 +495,9 @@
    "ar": "DevOps أول · مدير اختبار الجودة · قائد تقني DevOps و QA"
   },
   "hero.intro": {
-   "fr": "+8 ans a concevoir des pipelines CI/CD, automatiser la QA et exploiter des infrastructures cloud natives pour des environnements bancaires. Du poste local jusqu'au cloud, en passant par GitHub et le CI/CD.",
-   "en": "8+ years designing CI/CD pipelines, automating QA and running cloud-native infrastructure for banking environments. From the local machine to the cloud, through GitHub and CI/CD.",
-   "ar": "أكثر من 8 سنوات في تصميم خطوط CI/CD وأتمتة QA وتشغيل بنى سحابية لبيئات بنكية. من الجهاز المحلي إلى السحابة عبر GitHub وCI/CD."
+   "fr": "+8 ans a concevoir des pipelines CI/CD, automatiser la QA et exploiter des infrastructures pour des environnements bancaires. Du poste local jusqu'au VPS de production, en passant par GitHub et le CI/CD.",
+   "en": "8+ years designing CI/CD pipelines, automating QA and running infrastructure for banking environments. From the local machine to the production VPS, through GitHub and CI/CD.",
+   "ar": "أكثر من 8 سنوات في تصميم خطوط CI/CD وأتمتة QA وتشغيل بنى تحتية لبيئات بنكية. من الجهاز المحلي إلى خادم VPS الإنتاجي عبر GitHub وCI/CD."
   },
   "hero.viewcv": {
    "fr": "Voir le CV",
@@ -530,14 +530,24 @@
    "ar": "منتجات ومنصات وبنية تحتية بُنيت من البداية للنهاية."
   },
   "home.pipeline.title": {
-   "fr": "Du local au cloud",
-   "en": "From local to cloud",
-   "ar": "من المحلي إلى السحابة"
+   "fr": "Du local au VPS",
+   "en": "From local to VPS",
+   "ar": "من المحلي إلى خادم VPS"
   },
   "home.pipeline.sub": {
-   "fr": "Ma demarche de livraison : developpement local, versionnement GitHub, CI/CD automatise, puis deploiement cloud.",
-   "en": "My delivery flow: local development, GitHub versioning, automated CI/CD, then cloud deployment.",
-   "ar": "نهج التسليم لدي: تطوير محلي، إصدار على GitHub، CI/CD مؤتمت، ثم نشر سحابي."
+   "fr": "Ma demarche de livraison : developpement local, versionnement GitHub, CI/CD automatise, puis deploiement sur VPS.",
+   "en": "My delivery flow: local development, GitHub versioning, automated CI/CD, then deployment on VPS.",
+   "ar": "نهج التسليم لدي: تطوير محلي، إصدار على GitHub، CI/CD مؤتمت، ثم نشر على خادم VPS."
+  },
+  "home.journey.title": {
+   "fr": "Mon parcours : du local au VPS",
+   "en": "My journey: from local to VPS",
+   "ar": "مسيرتي: من المحلي إلى خادم VPS"
+  },
+  "home.journey.sub": {
+   "fr": "CV et timeline fusionnes en un seul parcours d'ingenierie.",
+   "en": "Resume and timeline merged into a single engineering journey.",
+   "ar": "السيرة والتسلسل الزمني مدمجان في رحلة هندسية واحدة."
   },
   "articles.title": {
    "fr": "Tous les articles",
@@ -545,9 +555,9 @@
    "ar": "كل المقالات"
   },
   "articles.sub": {
-   "fr": "Bibliotheque technique (40 technologies x 5 articles) + 20 articles IA, regroupes ici. Filtrez par categorie ou recherchez.",
-   "en": "Technical library (40 technologies x 5 articles) + 20 AI articles, gathered here. Filter by category or search.",
-   "ar": "المكتبة التقنية (40 تقنية × 5 مقالات) + 20 مقالا عن الذكاء الاصطناعي مجمعة هنا. صفّ حسب الفئة أو ابحث."
+   "fr": "Bibliotheque technique (40 technologies x 5 articles) + 20 articles IA + 50 articles Testing/QA, tous regroupes ici. Filtrez par categorie ou recherchez.",
+   "en": "Technical library (40 technologies x 5 articles) + 20 AI articles + 50 Testing/QA articles, all gathered here. Filter by category or search.",
+   "ar": "المكتبة التقنية (40 تقنية × 5 مقالات) + 20 مقالا عن الذكاء الاصطناعي + 50 مقالا في الاختبار والجودة، الكل مجمع هنا. صفّ حسب الفئة أو ابحث."
   },
   "articles.search": {
    "fr": "Rechercher un article ou une technologie...",
@@ -594,15 +604,30 @@
    "en": "Build, tests, security scan, Docker image",
    "ar": "بناء، اختبارات، فحص أمني، صورة Docker"
   },
-  "pipeline.cloud": {
-   "fr": "Cloud",
-   "en": "Cloud",
-   "ar": "السحابة"
+  "pipeline.vps": {
+   "fr": "VPS",
+   "en": "VPS",
+   "ar": "خادم VPS"
   },
-  "pipeline.cloud.d": {
-   "fr": "Deploiement VPS/K8s, Cloudflare, monitoring",
-   "en": "VPS/K8s deploy, Cloudflare, monitoring",
-   "ar": "نشر VPS/K8s، Cloudflare، مراقبة"
+  "pipeline.vps.d": {
+   "fr": "Deploiement Docker/K8s, Cloudflare, monitoring",
+   "en": "Docker/K8s deploy, Cloudflare, monitoring",
+   "ar": "نشر Docker/K8s، Cloudflare، مراقبة"
+  },
+  "articles.video": {
+   "fr": "Voir des videos sur YouTube",
+   "en": "Watch videos on YouTube",
+   "ar": "شاهد فيديوهات على يوتيوب"
+  },
+  "articles.diagram": {
+   "fr": "Schema",
+   "en": "Diagram",
+   "ar": "مخطط"
+  },
+  "articles.metrics": {
+   "fr": "Impact mesure",
+   "en": "Measured impact",
+   "ar": "الأثر المقاس"
   },
   "footer.written": {
    "fr": "Redige par",

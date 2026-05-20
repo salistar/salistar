@@ -11,6 +11,9 @@ import { ContentFooter } from '../../../components/ContentFooter';
 import { ArticleRenderer } from '../../../components/ArticleRenderer';
 import { CategoryVisual } from '../../../components/CategoryVisual';
 import { Pipeline } from '../../../components/Pipeline';
+import { ArticleDiagram } from '../../../components/ArticleDiagram';
+import { MetricsChart } from '../../../components/MetricsChart';
+import { VideoLink } from '../../../components/VideoLink';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string; article: string }> }
@@ -39,13 +42,19 @@ export default async function ArticlePage(
       <article>
         <CategoryVisual category={tech.category} title={a.title} subtitle={`${tech.name} · ${a.subtitle}`} />
 
+        <ArticleDiagram slug={a.slug} name={tech.name} />
+        <MetricsChart />
+
         <ArticleRenderer blocks={a.blocks} />
 
-        <div className="mt-12 gradient-border p-6">
+        <div className="mt-10 gradient-border p-6">
           <p className="text-sm font-semibold mb-4 text-center" style={{ color: '#FCD34D' }}>
-            Local → GitHub → CI/CD → Cloud
+            Local → GitHub → CI/CD → VPS
           </p>
           <Pipeline />
+          <div className="mt-5 text-center">
+            <VideoLink query={tech.name} />
+          </div>
         </div>
 
         <div className="mt-12 flex flex-wrap justify-between gap-3">

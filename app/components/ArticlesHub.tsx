@@ -10,6 +10,10 @@ import { Search } from 'lucide-react';
 import { catalog } from '../lib/library';
 import { useLang } from '../lib/i18n';
 import { CategoryVisual } from './CategoryVisual';
+import testingJson from '../lib/testing-articles.json';
+
+interface TestArticle { n: number; category: string; title: string; summary: string }
+const testing = testingJson as TestArticle[];
 
 interface Row {
   href: string;
@@ -44,6 +48,15 @@ export function ArticlesHub() {
         subtitle: a.subtitle,
         category: 'IA',
         tech: 'IA',
+      });
+    }
+    for (const a of testing) {
+      r.push({
+        href: `/testing/${a.n}`,
+        title: a.title,
+        subtitle: a.summary,
+        category: 'Testing / QA',
+        tech: a.category[0].toUpperCase() + a.category.slice(1),
       });
     }
     return r;

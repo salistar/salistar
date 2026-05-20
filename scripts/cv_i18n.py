@@ -16,7 +16,7 @@ CONTACT = {
     "site": "salistar.com",
 }
 
-NAME = {"fr": "Idriss Kriouile", "en": "Idriss Kriouile", "ar": "إدريس قريويل"}
+NAME = {"fr": "Idriss Kriouile", "en": "Idriss Kriouile", "ar": "إدريس كريويل"}
 
 TITLE = {
     "fr": "DevOps Senior · Test QA Manager · Tech Lead DevOps & QA",

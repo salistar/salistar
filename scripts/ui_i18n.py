@@ -22,14 +22,15 @@ UI = {
         "ar": "DevOps أول · مدير اختبار الجودة · قائد تقني DevOps و QA"},
     "hero.intro": {
         "fr": "+8 ans a concevoir des pipelines CI/CD, automatiser la QA et "
-              "exploiter des infrastructures cloud natives pour des "
-              "environnements bancaires. Du poste local jusqu'au cloud, en "
-              "passant par GitHub et le CI/CD.",
+              "exploiter des infrastructures pour des environnements bancaires. "
+              "Du poste local jusqu'au VPS de production, en passant par GitHub "
+              "et le CI/CD.",
         "en": "8+ years designing CI/CD pipelines, automating QA and running "
-              "cloud-native infrastructure for banking environments. From the "
-              "local machine to the cloud, through GitHub and CI/CD.",
-        "ar": "أكثر من 8 سنوات في تصميم خطوط CI/CD وأتمتة QA وتشغيل بنى سحابية "
-              "لبيئات بنكية. من الجهاز المحلي إلى السحابة عبر GitHub وCI/CD."},
+              "infrastructure for banking environments. From the local machine "
+              "to the production VPS, through GitHub and CI/CD.",
+        "ar": "أكثر من 8 سنوات في تصميم خطوط CI/CD وأتمتة QA وتشغيل بنى تحتية "
+              "لبيئات بنكية. من الجهاز المحلي إلى خادم VPS الإنتاجي عبر GitHub "
+              "وCI/CD."},
     "hero.viewcv": {"fr": "Voir le CV", "en": "View resume", "ar": "عرض السيرة"},
     "hero.contact": {"fr": "Me contacter", "en": "Contact me", "ar": "تواصل معي"},
     "home.cv.title": {"fr": "Curriculum Vitae", "en": "Resume", "ar": "السيرة الذاتية"},
@@ -40,24 +41,36 @@ UI = {
         "fr": "Produits, plateformes et infrastructure construits de bout en bout.",
         "en": "Products, platforms and infrastructure built end to end.",
         "ar": "منتجات ومنصات وبنية تحتية بُنيت من البداية للنهاية."},
-    "home.pipeline.title": {"fr": "Du local au cloud",
-                            "en": "From local to cloud", "ar": "من المحلي إلى السحابة"},
+    "home.pipeline.title": {"fr": "Du local au VPS",
+                            "en": "From local to VPS",
+                            "ar": "من المحلي إلى خادم VPS"},
     "home.pipeline.sub": {
         "fr": "Ma demarche de livraison : developpement local, versionnement "
-              "GitHub, CI/CD automatise, puis deploiement cloud.",
+              "GitHub, CI/CD automatise, puis deploiement sur VPS.",
         "en": "My delivery flow: local development, GitHub versioning, "
-              "automated CI/CD, then cloud deployment.",
+              "automated CI/CD, then deployment on VPS.",
         "ar": "نهج التسليم لدي: تطوير محلي، إصدار على GitHub، CI/CD مؤتمت، "
-              "ثم نشر سحابي."},
+              "ثم نشر على خادم VPS."},
+    "home.journey.title": {
+        "fr": "Mon parcours : du local au VPS",
+        "en": "My journey: from local to VPS",
+        "ar": "مسيرتي: من المحلي إلى خادم VPS"},
+    "home.journey.sub": {
+        "fr": "CV et timeline fusionnes en un seul parcours d'ingenierie.",
+        "en": "Resume and timeline merged into a single engineering journey.",
+        "ar": "السيرة والتسلسل الزمني مدمجان في رحلة هندسية واحدة."},
     "articles.title": {"fr": "Tous les articles",
                        "en": "All articles", "ar": "كل المقالات"},
     "articles.sub": {
         "fr": "Bibliotheque technique (40 technologies x 5 articles) + 20 "
-              "articles IA, regroupes ici. Filtrez par categorie ou recherchez.",
+              "articles IA + 50 articles Testing/QA, tous regroupes ici. "
+              "Filtrez par categorie ou recherchez.",
         "en": "Technical library (40 technologies x 5 articles) + 20 AI "
-              "articles, gathered here. Filter by category or search.",
+              "articles + 50 Testing/QA articles, all gathered here. Filter "
+              "by category or search.",
         "ar": "المكتبة التقنية (40 تقنية × 5 مقالات) + 20 مقالا عن الذكاء "
-              "الاصطناعي مجمعة هنا. صفّ حسب الفئة أو ابحث."},
+              "الاصطناعي + 50 مقالا في الاختبار والجودة، الكل مجمع هنا. صفّ "
+              "حسب الفئة أو ابحث."},
     "articles.search": {"fr": "Rechercher un article ou une technologie...",
                         "en": "Search an article or technology...",
                         "ar": "ابحث عن مقال أو تقنية..."},
@@ -76,10 +89,19 @@ UI = {
     "pipeline.cicd.d": {"fr": "Build, tests, scan securite, image Docker",
                         "en": "Build, tests, security scan, Docker image",
                         "ar": "بناء، اختبارات، فحص أمني، صورة Docker"},
-    "pipeline.cloud": {"fr": "Cloud", "en": "Cloud", "ar": "السحابة"},
-    "pipeline.cloud.d": {"fr": "Deploiement VPS/K8s, Cloudflare, monitoring",
-                         "en": "VPS/K8s deploy, Cloudflare, monitoring",
-                         "ar": "نشر VPS/K8s، Cloudflare، مراقبة"},
+    "pipeline.vps": {"fr": "VPS", "en": "VPS", "ar": "خادم VPS"},
+    "pipeline.vps.d": {"fr": "Deploiement Docker/K8s, Cloudflare, monitoring",
+                       "en": "Docker/K8s deploy, Cloudflare, monitoring",
+                       "ar": "نشر Docker/K8s، Cloudflare، مراقبة"},
+    "articles.video": {"fr": "Voir des videos sur YouTube",
+                       "en": "Watch videos on YouTube",
+                       "ar": "شاهد فيديوهات على يوتيوب"},
+    "articles.diagram": {"fr": "Schema",
+                         "en": "Diagram",
+                         "ar": "مخطط"},
+    "articles.metrics": {"fr": "Impact mesure",
+                         "en": "Measured impact",
+                         "ar": "الأثر المقاس"},
     "footer.written": {"fr": "Redige par", "en": "Written by",
                        "ar": "بقلم"},
     "footer.profile": {"fr": "Profil", "en": "Profile", "ar": "الملف"},

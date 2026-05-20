@@ -10,6 +10,9 @@ import { ContentShell } from '../../components/ContentShell';
 import { ContentFooter } from '../../components/ContentFooter';
 import { ArticleRenderer } from '../../components/ArticleRenderer';
 import { CategoryVisual } from '../../components/CategoryVisual';
+import { ArticleDiagram } from '../../components/ArticleDiagram';
+import { MetricsChart } from '../../components/MetricsChart';
+import { VideoLink } from '../../components/VideoLink';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
@@ -34,7 +37,12 @@ export default async function AiArticlePage(
     <ContentShell back={{ href: '/ia', label: 'Articles IA' }}>
       <article>
         <CategoryVisual category="IA" title={a.title} subtitle={a.subtitle} />
+        <ArticleDiagram slug="fondamentaux" name="IA" />
+        <MetricsChart title="Repères industrialisation IA / DevOps (en %)" />
         <ArticleRenderer blocks={a.blocks} />
+        <div className="mt-8 text-center">
+          <VideoLink query={a.title} />
+        </div>
 
         <div className="mt-12 flex flex-wrap justify-between gap-3">
           {prev ? (

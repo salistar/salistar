@@ -1,0 +1,302 @@
+[
+ {
+  "n": 21,
+  "category": "cypress",
+  "title": "Cypress architecture: in-browser test runner",
+  "summary": "Why same-origin & retry-ability change everything."
+ },
+ {
+  "n": 22,
+  "category": "cypress",
+  "title": "Network stubbing with cy.intercept()",
+  "summary": "Test the UI without depending on a live backend."
+ },
+ {
+  "n": 23,
+  "category": "cypress",
+  "title": "Custom commands: cy.login(), cy.seed()",
+  "summary": "DRY tests with cypress/support/commands.ts"
+ },
+ {
+  "n": 24,
+  "category": "cypress",
+  "title": "Cypress + cypress-axe: a11y on every test",
+  "summary": "WCAG violations caught automatically."
+ },
+ {
+  "n": 25,
+  "category": "cypress",
+  "title": "Cypress Cloud: parallelization & replay",
+  "summary": "Run 100 specs across 10 machines in 6 min."
+ },
+ {
+  "n": 26,
+  "category": "cypress",
+  "title": "Component testing in Cypress 10+",
+  "summary": "Mount a React component without a full app."
+ },
+ {
+  "n": 27,
+  "category": "cypress",
+  "title": "Anti-pattern: cy.wait(5000) is a smell",
+  "summary": "Hard-coded waits are flake factories."
+ },
+ {
+  "n": 28,
+  "category": "cypress",
+  "title": "data-cy selectors over CSS class",
+  "summary": "Decouple tests from styling refactors."
+ },
+ {
+  "n": 29,
+  "category": "cypress",
+  "title": "Cypress + Percy: visual regression as a Cypress command",
+  "summary": "`cy.percySnapshot()` after every meaningful state."
+ },
+ {
+  "n": 30,
+  "category": "cypress",
+  "title": "Cypress GitHub Actions: matrix + caching",
+  "summary": "A robust workflow for parallel Cypress in GA."
+ },
+ {
+  "n": 1,
+  "category": "general",
+  "title": "The Test Pyramid: why unit tests are 70%",
+  "summary": "Unit, integration, E2E — finding the right ratio for a real codebase."
+ },
+ {
+  "n": 2,
+  "category": "general",
+  "title": "Black-box vs white-box: when to use each",
+  "summary": "Two complementary mindsets, not two religions."
+ },
+ {
+  "n": 3,
+  "category": "general",
+  "title": "TDD: red-green-refactor in real life",
+  "summary": "Why discipline matters more than tool choice."
+ },
+ {
+  "n": 4,
+  "category": "general",
+  "title": "BDD with Gherkin: spec that runs",
+  "summary": "Given / When / Then as a contract between product & dev."
+ },
+ {
+  "n": 5,
+  "category": "general",
+  "title": "Property-based testing with fast-check",
+  "summary": "1000 random inputs find bugs no example test can."
+ },
+ {
+  "n": 6,
+  "category": "general",
+  "title": "Test doubles: stub, mock, fake, spy",
+  "summary": "Same word, four different responsibilities."
+ },
+ {
+  "n": 7,
+  "category": "general",
+  "title": "Flaky tests: identify, quarantine, fix",
+  "summary": "A flaky test is a broken test in disguise."
+ },
+ {
+  "n": 8,
+  "category": "general",
+  "title": "Code coverage: a thermometer, not a goal",
+  "summary": "100% coverage with 0 assertions = 0 confidence."
+ },
+ {
+  "n": 9,
+  "category": "general",
+  "title": "Contract testing with Pact",
+  "summary": "How microservices stop breaking each other."
+ },
+ {
+  "n": 10,
+  "category": "general",
+  "title": "Visual regression with Percy / Chromatic",
+  "summary": "Pixel diffs catch CSS bugs no DOM assertion can."
+ },
+ {
+  "n": 41,
+  "category": "playwright",
+  "title": "Playwright auto-wait: no more flaky waits",
+  "summary": "Why every Playwright command waits actionability."
+ },
+ {
+  "n": 42,
+  "category": "playwright",
+  "title": "Locators vs Selectors: the right abstraction",
+  "summary": "Why `page.getByRole` beats `.querySelector`."
+ },
+ {
+  "n": 43,
+  "category": "playwright",
+  "title": "Network mocking with page.route()",
+  "summary": "Test offline, error, slow-network scenarios."
+ },
+ {
+  "n": 44,
+  "category": "playwright",
+  "title": "Trace viewer: time-travel debugging",
+  "summary": "A failing CI run with the entire DOM history."
+ },
+ {
+  "n": 45,
+  "category": "playwright",
+  "title": "Parallel execution + sharding",
+  "summary": "How Playwright crushes a 30-min suite into 5."
+ },
+ {
+  "n": 46,
+  "category": "playwright",
+  "title": "Cross-browser: Chromium, Firefox, WebKit",
+  "summary": "One API, three engines, real browser binaries."
+ },
+ {
+  "n": 47,
+  "category": "playwright",
+  "title": "API testing with request fixture",
+  "summary": "Reuse browser auth in pure-API calls."
+ },
+ {
+  "n": 48,
+  "category": "playwright",
+  "title": "Mobile emulation: device descriptors",
+  "summary": "Test iPhone 12 viewport + UA without a phone."
+ },
+ {
+  "n": 49,
+  "category": "playwright",
+  "title": "Component testing with @playwright/experimental-ct-react",
+  "summary": "Mount a single React component in a real browser."
+ },
+ {
+  "n": 50,
+  "category": "playwright",
+  "title": "Playwright + GitHub Actions: official template",
+  "summary": "A reference workflow that handles caching, sharding, reports."
+ },
+ {
+  "n": 11,
+  "category": "robot",
+  "title": "Robot Framework: keyword-driven mindset",
+  "summary": "Code that reads like a user manual."
+ },
+ {
+  "n": 12,
+  "category": "robot",
+  "title": "SeleniumLibrary vs BrowserLibrary in Robot",
+  "summary": "Why we migrated from Selenium to Playwright under Robot."
+ },
+ {
+  "n": 13,
+  "category": "robot",
+  "title": "Resource files & shared keywords in Robot",
+  "summary": "Avoid copy-paste with `.resource` files."
+ },
+ {
+  "n": 14,
+  "category": "robot",
+  "title": "Data-driven tests with the Template syntax",
+  "summary": "Run the same test with 50 input combinations."
+ },
+ {
+  "n": 15,
+  "category": "robot",
+  "title": "Robot listener interface for custom reporting",
+  "summary": "Hook every test event to Slack, Jira, Grafana."
+ },
+ {
+  "n": 16,
+  "category": "robot",
+  "title": "AppiumLibrary for native mobile testing",
+  "summary": "Driving the SallyCards APK from Robot."
+ },
+ {
+  "n": 17,
+  "category": "robot",
+  "title": "RequestsLibrary for API testing in Robot",
+  "summary": "When SeleniumLibrary is overkill for REST checks."
+ },
+ {
+  "n": 18,
+  "category": "robot",
+  "title": "Pabot for parallel execution",
+  "summary": "Cut a 60-min Robot suite to 12 min."
+ },
+ {
+  "n": 19,
+  "category": "robot",
+  "title": "Tags, tag patterns and selective runs",
+  "summary": "Run only the smoke tests on every PR."
+ },
+ {
+  "n": 20,
+  "category": "robot",
+  "title": "rfbrowser & Playwright trace files",
+  "summary": "Best of both worlds: Robot syntax + Playwright power."
+ },
+ {
+  "n": 31,
+  "category": "selenium",
+  "title": "Selenium WebDriver: the W3C standard",
+  "summary": "Why Selenium is still the lingua franca."
+ },
+ {
+  "n": 32,
+  "category": "selenium",
+  "title": "Explicit waits with WebDriverWait",
+  "summary": "The single most important Selenium concept."
+ },
+ {
+  "n": 33,
+  "category": "selenium",
+  "title": "Page Object Model in Selenium",
+  "summary": "Encapsulate UI knowledge in classes."
+ },
+ {
+  "n": 34,
+  "category": "selenium",
+  "title": "Selenium Grid 4: distributed execution",
+  "summary": "Run 100 sessions on 10 machines from one entry point."
+ },
+ {
+  "n": 35,
+  "category": "selenium",
+  "title": "Headless Chrome with selenium-chrome-driver",
+  "summary": "CI runs without a display server."
+ },
+ {
+  "n": 36,
+  "category": "selenium",
+  "title": "BiDi support: bridging to Playwright DevTools features",
+  "summary": "Selenium 4 starts catching up."
+ },
+ {
+  "n": 37,
+  "category": "selenium",
+  "title": "Selenium + TestNG (Java) vs pytest (Python)",
+  "summary": "Two stacks, one philosophy."
+ },
+ {
+  "n": 38,
+  "category": "selenium",
+  "title": "Cross-browser testing matrix in CI",
+  "summary": "Chrome, Firefox, Edge, Safari on every PR — when worth it."
+ },
+ {
+  "n": 39,
+  "category": "selenium",
+  "title": "Visual snapshot with Applitools Eyes",
+  "summary": "AI-powered visual testing for Selenium."
+ },
+ {
+  "n": 40,
+  "category": "selenium",
+  "title": "Migrating Selenium to Playwright: rule of 3",
+  "summary": "Practical advice from 200-test migration."
+ }
+]
