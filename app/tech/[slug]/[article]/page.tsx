@@ -10,9 +10,12 @@ import { ContentShell } from '../../../components/ContentShell';
 import { ContentFooter } from '../../../components/ContentFooter';
 import { ArticleRenderer } from '../../../components/ArticleRenderer';
 import { CategoryVisual } from '../../../components/CategoryVisual';
+import { CategoryPhoto } from '../../../components/CategoryPhoto';
 import { Pipeline } from '../../../components/Pipeline';
 import { ArticleDiagram } from '../../../components/ArticleDiagram';
 import { MetricsChart } from '../../../components/MetricsChart';
+import { SparklineChart } from '../../../components/SparklineChart';
+import { GaugeChart } from '../../../components/GaugeChart';
 import { VideoLink } from '../../../components/VideoLink';
 
 export async function generateMetadata(
@@ -41,9 +44,12 @@ export default async function ArticlePage(
     <ContentShell back={{ href: `/tech/${slug}`, label: tech.name }}>
       <article>
         <CategoryVisual category={tech.category} title={a.title} subtitle={`${tech.name} · ${a.subtitle}`} />
+        <CategoryPhoto category={tech.category} />
 
         <ArticleDiagram slug={a.slug} name={tech.name} />
         <MetricsChart />
+        <SparklineChart />
+        <GaugeChart />
 
         <ArticleRenderer blocks={a.blocks} />
 

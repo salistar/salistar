@@ -60,7 +60,7 @@ PROFILE = {
     "ar": (
         "مهندس DevOps وقائد تقني بخبرة تفوق 8 سنوات تشمل تصميم خطوط CI/CD، "
         "وأتمتة الاختبارات (QA)، وتصنيع وتشغيل بنى سحابية أصلية لبيئات بنكية "
-        "ومؤسسات كبرى (Worldline، سوسيتيه جنرال المغرب، HPS، مجموعة روشيه). "
+        "ومؤسسات كبرى (Worldline، بنك صحام (سابقا سوسيتيه جنرال المغرب)، HPS، مجموعة روشيه). "
         "خبرة مزدوجة في DevOps وإدارة اختبار الجودة: Jenkins وGitLab CI "
         "وGitHub Actions وKubernetes وHelm وGitOps (ArgoCD/Flux) وTerraform "
         "وAnsible؛ بالإضافة إلى استراتيجية الاختبار وRobot Framework "
@@ -110,7 +110,7 @@ EXPERIENCE = [
         "bullets": {
             "fr": [
                 "WORLDLINE (OMS) — Tech Lead DevOps/QA : pipelines Jenkins & GitLab CI (XMLCONV, BWB, FileNet).",
-                "SOCIETE GENERALE MAROC (Manor) — Chef d'equipe monitoring / Product Owner.",
+                "SAHAM BANK (ex Societe Generale Maroc) (Manor) — Chef d'equipe monitoring / Product Owner.",
                 "Containerisation Docker, orchestration Kubernetes/Helm, environnements bancaires HA.",
                 "Pipelines multi-environnements (Dev/Recette/Prod) : build, tests, packaging, rollbacks.",
                 "Encadrement de 8 ingenieurs, -40% temps de deploiement.",
@@ -119,7 +119,7 @@ EXPERIENCE = [
             ],
             "en": [
                 "WORLDLINE (OMS) — DevOps/QA Tech Lead: Jenkins & GitLab CI pipelines (XMLCONV, BWB, FileNet).",
-                "SOCIETE GENERALE MOROCCO (Manor) — Monitoring team lead / Product Owner.",
+                "SAHAM BANK (ex Societe Generale Morocco) (Manor) — Monitoring team lead / Product Owner.",
                 "Docker containerization, Kubernetes/Helm orchestration, HA banking environments.",
                 "Multi-environment pipelines (Dev/Staging/Prod): build, tests, packaging, rollbacks.",
                 "Led 8 engineers, -40% deployment time.",
@@ -128,7 +128,7 @@ EXPERIENCE = [
             ],
             "ar": [
                 "WORLDLINE (OMS) — قائد تقني DevOps/QA: خطوط Jenkins وGitLab CI (XMLCONV، BWB، FileNet).",
-                "سوسيتيه جنرال المغرب (Manor) — قائد فريق المراقبة / Product Owner.",
+                "بنك صحام (سابقا سوسيتيه جنرال المغرب) (Manor) — قائد فريق المراقبة / Product Owner.",
                 "حاويات Docker، تنسيق Kubernetes/Helm، بيئات بنكية عالية التوافر.",
                 "خطوط متعددة البيئات (تطوير/اختبار/إنتاج): بناء، اختبارات، تعبئة، تراجع.",
                 "قيادة 8 مهندسين، خفض 40% من زمن النشر.",

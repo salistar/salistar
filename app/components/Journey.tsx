@@ -12,14 +12,16 @@ import { catalog } from '../lib/library';
 import { Pipeline } from './Pipeline';
 
 // (sous-)logos a afficher selon le prefixe d'entreprise dans le CV
+// Prefere les vrais logos (.png) tires de Wikimedia Commons ; SVG genere
+// en fallback quand Wikimedia n'a pas la marque.
 const COMPANY_LOGOS: { match: RegExp; logos: { src: string; label: string }[] }[] = [
   { match: /^ALTEN/i, logos: [
-      { src: '/logos/alten.svg', label: 'ALTEN' },
+      { src: '/logos/alten.png', label: 'ALTEN' },
       { src: '/logos/worldline.svg', label: 'Worldline' },
-      { src: '/logos/societegenerale.svg', label: 'Société Générale' },
+      { src: '/logos/saham.png', label: 'Saham Bank (ex Société Générale Maroc)' },
   ]},
   { match: /^VISEO/i, logos: [
-      { src: '/logos/viseo.svg', label: 'VISEO' },
+      { src: '/logos/viseo.png', label: 'VISEO' },
       { src: '/logos/rocher.svg', label: 'Groupe Rocher' },
   ]},
   { match: /^SYLOB|^FORTERRO/i, logos: [
@@ -28,10 +30,16 @@ const COMPANY_LOGOS: { match: RegExp; logos: { src: string; label: string }[] }[
   { match: /^HPS/i, logos: [
       { src: '/logos/hps.svg', label: 'HPS' },
   ]},
-  { match: /anterieures|earlier|previous/i, logos: [
-      { src: '/logos/orange.svg', label: 'Orange Business' },
-      { src: '/logos/lafarge.svg', label: 'Lafarge Maroc' },
+  { match: /anterieures|earlier|previous|سابق/i, logos: [
+      { src: '/logos/orangebusiness.png', label: 'Orange Business Services' },
+      { src: '/logos/lafarge.png', label: 'Lafarge Maroc' },
   ]},
+];
+
+const EDUCATION_LOGOS = [
+  { src: '/logos/uir.png',  label: 'UIR — Université Internationale de Rabat' },
+  { src: '/logos/ecam.png', label: 'ECAM Louis de Broglie' },
+  { src: '/logos/efrei.png', label: 'EFREI' },
 ];
 
 const STAGE_FOR = (idx: number, total: number) => {
@@ -170,6 +178,13 @@ export function Journey() {
         <div className="grid md:grid-cols-2 gap-4 mt-10">
           <div className="gradient-border p-6">
             <h3 className="text-lg font-bold mb-3 text-white">{cv.labels.education}</h3>
+            <div className="flex flex-wrap gap-3 mb-4">
+              {EDUCATION_LOGOS.map((l) => (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img key={l.src} src={l.src} alt={l.label} title={l.label}
+                  className="h-10 rounded-md" style={{ background: 'rgba(255,255,255,0.06)', padding: 4 }} />
+              ))}
+            </div>
             <ul className="list-disc pl-5 space-y-1.5 text-sm" style={{ color: 'rgba(248,250,252,0.85)' }}>
               {cv.education.map((x, i) => <li key={i}>{x}</li>)}
             </ul>

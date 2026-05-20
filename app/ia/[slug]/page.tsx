@@ -10,8 +10,11 @@ import { ContentShell } from '../../components/ContentShell';
 import { ContentFooter } from '../../components/ContentFooter';
 import { ArticleRenderer } from '../../components/ArticleRenderer';
 import { CategoryVisual } from '../../components/CategoryVisual';
+import { CategoryPhoto } from '../../components/CategoryPhoto';
 import { ArticleDiagram } from '../../components/ArticleDiagram';
 import { MetricsChart } from '../../components/MetricsChart';
+import { SparklineChart } from '../../components/SparklineChart';
+import { GaugeChart } from '../../components/GaugeChart';
 import { VideoLink } from '../../components/VideoLink';
 
 export async function generateMetadata(
@@ -37,8 +40,11 @@ export default async function AiArticlePage(
     <ContentShell back={{ href: '/ia', label: 'Articles IA' }}>
       <article>
         <CategoryVisual category="IA" title={a.title} subtitle={a.subtitle} />
+        <CategoryPhoto category="IA" />
         <ArticleDiagram slug="fondamentaux" name="IA" />
         <MetricsChart title="Repères industrialisation IA / DevOps (en %)" />
+        <SparklineChart title="Coût par requete LLM (cts) — 12 sprints d'optimisation" />
+        <GaugeChart title="Qualite / sécurité / fiabilite des systemes IA" />
         <ArticleRenderer blocks={a.blocks} />
         <div className="mt-8 text-center">
           <VideoLink query={a.title} />
