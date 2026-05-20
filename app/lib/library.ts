@@ -45,8 +45,41 @@ export interface CvSkill {
   1: string;
 }
 
+export type Lang = 'fr' | 'en' | 'ar';
+
+export interface CvDoc {
+  lang: Lang;
+  name: string;
+  title: string;
+  status: string;
+  profile: string;
+  contact: Record<string, string>;
+  skills: { cat: string; items: string }[];
+  experience: { company: string; period: string; role: string; bullets: string[] }[];
+  education: string[];
+  languages: string;
+  labels: Record<string, string>;
+}
+
+export interface ProjectItem {
+  slug: string;
+  name: string;
+  tag: Record<Lang, string>;
+  desc: Record<Lang, string>;
+  stack: string[];
+  url: string;
+  shot: string;
+  color: string;
+}
+
 export interface Catalog {
   generatedAt: string;
+  cvI18n: Record<Lang, CvDoc>;
+  ui: Record<string, Record<Lang, string>>;
+  projects: ProjectItem[];
+  photo: string;
+  photoSm: string;
+  cvPdf: Record<Lang, string>;
   cv: {
     name: string;
     first: string;
@@ -109,3 +142,11 @@ export async function getAi(slug: string): Promise<AiDoc | null> {
 export function findTechMeta(slug: string) {
   return catalog.techIndex.find((t) => t.slug === slug) ?? null;
 }
+
+/** Traduction d'une cle d'interface (fallback FR puis cle brute). */
+export function tr(key: string, lang: Lang): string {
+  const e = catalog.ui[key];
+  if (!e) return key;
+  return e[lang] || e.fr || key;
+}
+

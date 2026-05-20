@@ -9,6 +9,8 @@ import { notFound } from 'next/navigation';
 import { getTech, findTechMeta, catalog } from '../../lib/library';
 import { ContentShell } from '../../components/ContentShell';
 import { ContentFooter } from '../../components/ContentFooter';
+import { CategoryVisual } from '../../components/CategoryVisual';
+import { Pipeline } from '../../components/Pipeline';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
@@ -29,15 +31,19 @@ export default async function TechPage({ params }: { params: Promise<{ slug: str
 
   return (
     <ContentShell back={{ href: '/tech', label: 'Bibliotheque' }}>
+      <CategoryVisual category={tech.category} title={tech.name} subtitle={tech.role.slice(0, 130) + '…'} />
       <header className="mb-8">
-        <span className="tag">{tech.category}</span>
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight mt-4 mb-4 gradient-text">
-          {tech.name}
-        </h1>
         <p className="text-lg leading-relaxed" style={{ color: 'rgba(248,250,252,0.9)' }}>
           {tech.role}
         </p>
       </header>
+
+      <div className="mb-10 gradient-border p-6">
+        <p className="text-sm font-semibold mb-4 text-center" style={{ color: '#FCD34D' }}>
+          Cycle de livraison : Local → GitHub → CI/CD → Cloud
+        </p>
+        <Pipeline compact />
+      </div>
 
       <section className="mb-10">
         <h2 className="text-2xl font-bold mb-4 text-white">Articles approfondis</h2>

@@ -9,6 +9,8 @@ import { getTech } from '../../../lib/library';
 import { ContentShell } from '../../../components/ContentShell';
 import { ContentFooter } from '../../../components/ContentFooter';
 import { ArticleRenderer } from '../../../components/ArticleRenderer';
+import { CategoryVisual } from '../../../components/CategoryVisual';
+import { Pipeline } from '../../../components/Pipeline';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string; article: string }> }
@@ -35,16 +37,16 @@ export default async function ArticlePage(
   return (
     <ContentShell back={{ href: `/tech/${slug}`, label: tech.name }}>
       <article>
-        <header className="mb-8">
-          <span className="tag">{tech.category} · {tech.name}</span>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-4 mb-3 gradient-text"
-            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
-            {a.title}
-          </h1>
-          <p className="text-lg" style={{ color: '#FCD34D' }}>{a.subtitle}</p>
-        </header>
+        <CategoryVisual category={tech.category} title={a.title} subtitle={`${tech.name} · ${a.subtitle}`} />
 
         <ArticleRenderer blocks={a.blocks} />
+
+        <div className="mt-12 gradient-border p-6">
+          <p className="text-sm font-semibold mb-4 text-center" style={{ color: '#FCD34D' }}>
+            Local → GitHub → CI/CD → Cloud
+          </p>
+          <Pipeline />
+        </div>
 
         <div className="mt-12 flex flex-wrap justify-between gap-3">
           {prev ? (

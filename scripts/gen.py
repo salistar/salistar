@@ -23,6 +23,8 @@ OUT_LIB = os.path.join(ROOT, "app", "lib")
 
 from kb import CV
 from tk_ai import AI
+from cv_i18n import CV_I18N
+from ui_i18n import UI, PROJECTS
 
 TECH = {}
 for mod in ("tk_cicd", "tk_containers", "tk_iac", "tk_lang", "tk_cloud",
@@ -308,6 +310,14 @@ def main():
     catalog = {
         "generatedAt": "2026-05-19",
         "cv": CV,
+        "cvI18n": CV_I18N,
+        "ui": UI,
+        "projects": PROJECTS,
+        "photo": "/idriss-kriouile.jpg",
+        "photoSm": "/idriss-kriouile-sm.jpg",
+        "cvPdf": {"fr": "/cv-idriss-kriouile-fr.pdf",
+                  "en": "/cv-idriss-kriouile-en.pdf",
+                  "ar": "/cv-idriss-kriouile-ar.pdf"},
         "categories": [
             {"name": c, "techs": sorted(cats[c], key=lambda x: x["name"])}
             for c in cats

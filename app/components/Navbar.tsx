@@ -1,16 +1,16 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useLang } from '../lib/i18n';
+import { LangSwitch } from './LangSwitch';
 
-const links = [
-  { href: '#about', label: 'About' },
-  { href: '#experience', label: 'Experience' },
-  { href: '#projects', label: 'Projects' },
-  { href: '/cv', label: 'CV' },
-  { href: '/tech', label: 'Bibliotheque' },
-  { href: '/ia', label: 'IA' },
-  { href: '#skills', label: 'Skills' },
-  { href: '#contact', label: 'Contact' },
+const linkKeys: { href: string; key: string }[] = [
+  { href: '/cv', key: 'nav.cv' },
+  { href: '/#projects', key: 'nav.projects' },
+  { href: '/articles', key: 'nav.articles' },
+  { href: '/tech', key: 'nav.library' },
+  { href: '/ia', key: 'nav.ia' },
+  { href: '#contact', key: 'nav.contact' },
 ];
 
 /**
@@ -21,6 +21,7 @@ const links = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { t } = useLang();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -63,33 +64,21 @@ export function Navbar() {
         </a>
 
         <ul className="hidden md:flex items-center gap-1">
-          {links.map((l) => (
+          {linkKeys.map((l) => (
             <li key={l.href}>
               <a
                 href={l.href}
-                className="px-3 py-2 text-sm font-medium rounded-lg transition"
-                style={{ color: 'rgba(248,250,252,0.8)' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#FCD34D';
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = 'rgba(248,250,252,0.8)';
-                  e.currentTarget.style.background = 'transparent';
-                }}
+                className="px-3 py-2 text-sm font-medium rounded-lg transition hero-link"
               >
-                {l.label}
+                {t(l.key)}
               </a>
             </li>
           ))}
         </ul>
 
-        <a
-          href="#contact"
-          className="hidden md:inline-flex btn-primary text-sm px-5 py-2.5"
-        >
-          Get in touch →
-        </a>
+        <div className="hidden md:flex items-center gap-3">
+          <LangSwitch />
+        </div>
 
         <button
           aria-label="Menu"
@@ -111,7 +100,7 @@ export function Navbar() {
             borderTopColor: 'rgba(255,255,255,0.08)',
           }}
         >
-          {links.map((l) => (
+          {linkKeys.map((l) => (
             <a
               key={l.href}
               href={l.href}
@@ -119,16 +108,10 @@ export function Navbar() {
               className="block py-2.5 text-sm font-medium"
               style={{ color: 'rgba(248,250,252,0.85)' }}
             >
-              {l.label}
+              {t(l.key)}
             </a>
           ))}
-          <a
-            href="#contact"
-            onClick={() => setMobileOpen(false)}
-            className="block btn-primary text-sm mt-3 text-center"
-          >
-            Get in touch →
-          </a>
+          <div className="pt-3"><LangSwitch /></div>
         </div>
       )}
     </nav>

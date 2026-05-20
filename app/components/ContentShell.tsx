@@ -9,7 +9,7 @@ export function ContentShell({
   back,
 }: {
   children: React.ReactNode;
-  back?: { href: string; label: string };
+  back?: { href: string; label?: string };
 }) {
   return (
     <main className="min-h-screen relative overflow-x-hidden">

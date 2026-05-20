@@ -9,6 +9,7 @@ import { getAi, catalog } from '../../lib/library';
 import { ContentShell } from '../../components/ContentShell';
 import { ContentFooter } from '../../components/ContentFooter';
 import { ArticleRenderer } from '../../components/ArticleRenderer';
+import { CategoryVisual } from '../../components/CategoryVisual';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
@@ -32,15 +33,7 @@ export default async function AiArticlePage(
   return (
     <ContentShell back={{ href: '/ia', label: 'Articles IA' }}>
       <article>
-        <header className="mb-8">
-          <span className="tag">Intelligence Artificielle</span>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-4 mb-3 gradient-text"
-            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
-            {a.title}
-          </h1>
-          <p className="text-lg" style={{ color: '#FCD34D' }}>{a.subtitle}</p>
-        </header>
-
+        <CategoryVisual category="IA" title={a.title} subtitle={a.subtitle} />
         <ArticleRenderer blocks={a.blocks} />
 
         <div className="mt-12 flex flex-wrap justify-between gap-3">
