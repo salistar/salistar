@@ -8,6 +8,26 @@ services:
       - '127.0.0.1:4001:3000'
     environment:
       NODE_ENV: production
+      # Messages recus : formulaire de contact + emails de contact@salistar.com.
+      MESSAGES_FILE: /data/messages.json
+      # Empreinte scrypt du mot de passe du tableau de bord (JAMAIS le mot de
+      # passe lui-meme). Voir scripts/hash-password.mjs.
+      DASHBOARD_PASSWORD_HASH: ${DASHBOARD_PASSWORD_HASH:-}
+      # Cle de signature des cookies de session. Sans elle, aucune connexion
+      # n'est possible — c'est voulu : pas de session non signee.
+      AUTH_SECRET: ${AUTH_SECRET:-}
+      # Cle partagee avec l'Email Worker Cloudflare. Absente = /api/mail/ingest
+      # est ferme.
+      MAIL_INGEST_KEY: ${MAIL_INGEST_KEY:-}
+      # Notification des nouveaux messages (Resend).
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      NOTIFY_EMAIL: ${NOTIFY_EMAIL:-salistarcompany@gmail.com}
+      NOTIFY_FROM: ${NOTIFY_FROM:-}
+    volumes:
+      # Volume nomme : les messages survivent a chaque redeploiement. Avec un
+      # simple repertoire dans l'image, ils disparaitraient au premier
+      # `docker compose up --build`.
+      - salistar-data:/data
     logging:
       driver: json-file
       options:
@@ -15,6 +35,10 @@ services:
         max-file: '3'
     networks:
       - salistar-network
+
+volumes:
+  salistar-data:
+    name: salistar-data
 
 networks:
   salistar-network:

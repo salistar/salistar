@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Lock } from 'lucide-react';
 import { useLang } from '../lib/i18n';
 import { LangSwitch } from './LangSwitch';
 
@@ -78,6 +78,20 @@ export function Navbar() {
 
         <div className="hidden md:flex items-center gap-3">
           <LangSwitch />
+          {/* Espace prive : /dashboard redirige vers /login si la session
+              manque, donc ce bouton pointe directement sur le tableau de bord
+              — deja connecte, on y entre sans passer par la case mot de passe. */}
+          <a
+            href="/dashboard"
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold rounded-lg transition"
+            style={{
+              color: '#0A1F44',
+              background: 'linear-gradient(135deg, #FCD34D, #FBBF24)',
+              boxShadow: '0 2px 12px rgba(252,211,77,0.25)',
+            }}
+          >
+            <Lock size={14} /> Connexion
+          </a>
         </div>
 
         <button
@@ -111,6 +125,14 @@ export function Navbar() {
               {t(l.key)}
             </a>
           ))}
+          <a
+            href="/dashboard"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-2 py-2.5 text-sm font-semibold"
+            style={{ color: '#FCD34D' }}
+          >
+            <Lock size={14} /> Connexion
+          </a>
           <div className="pt-3"><LangSwitch /></div>
         </div>
       )}

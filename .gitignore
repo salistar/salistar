@@ -10,6 +10,11 @@ next-env.d.ts
 .env*.local
 .env.production
 
+# Messages recus en developpement local (le volume Docker prend le relais en
+# production). Ce sont des messages de visiteurs : ils n'ont rien a faire dans
+# un depot, meme prive.
+.data/
+
 .DS_Store
 Thumbs.db
 *.log

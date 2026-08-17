@@ -6,6 +6,10 @@ on:
     paths:
       - 'app/**'
       - 'public/**'
+      # Le middleware protege /dashboard : hors de `app/`, il serait sinon
+      # modifie sans jamais declencher de deploiement.
+      - 'middleware.ts'
+      - 'scripts/**'
       - 'package.json'
       - 'package-lock.json'
       - 'next.config.ts'
@@ -74,6 +78,24 @@ jobs:
             # ----- salistar.com -----
             cd ~/apps/salistar
             git fetch --all && git reset --hard origin/main
+
+            # Variables du tableau de bord et de la reception des messages.
+            # Ecrites ICI a partir des secrets GitHub plutot que posees a la
+            # main sur le serveur : un `.env` cree manuellement se perd au
+            # premier reprovisionnement, et personne ne se souvient de ce qu il
+            # contenait. Le fichier est reecrit a chaque deploiement, donc
+            # GitHub reste la source de verite.
+            umask 077
+            cat > .env <<'ENVFILE'
+            DASHBOARD_PASSWORD_HASH=${{ secrets.DASHBOARD_PASSWORD_HASH }}
+            AUTH_SECRET=${{ secrets.AUTH_SECRET }}
+            MAIL_INGEST_KEY=${{ secrets.MAIL_INGEST_KEY }}
+            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+            NOTIFY_EMAIL=${{ secrets.NOTIFY_EMAIL }}
+            NOTIFY_FROM=${{ secrets.NOTIFY_FROM }}
+            ENVFILE
+            chmod 600 .env
+
             docker compose pull
             docker compose up -d --remove-orphans
             # ----- salorie.salistar.com (meme serveur dedie) -----

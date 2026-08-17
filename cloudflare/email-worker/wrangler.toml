@@ -1,0 +1,23 @@
+name = "salistar-contact-mail"
+main = "src/worker.js"
+compatibility_date = "2026-08-16"
+account_id = "b200d27bf316ee1d12ced3694a81c1ea"
+
+# ATTENTION : `wrangler deploy` REMPLACE la configuration distante par
+# celle-ci. Les variables en clair doivent donc etre redeclarees ici a
+# l'identique, sinon un deploiement fait perdre au Worker l'URL d'ingestion et
+# l'adresse de transfert — sans le moindre message d'erreur.
+#
+# Le SECRET `MAIL_INGEST_KEY` est en revanche CONSERVE d'un deploiement a
+# l'autre par Cloudflare. Il ne doit jamais figurer dans ce fichier : un secret
+# dans un fichier versionne est un secret publie.
+#   npx wrangler secret put MAIL_INGEST_KEY
+
+# Les journaux sont ce qui rend une ingestion ratee diagnosticable. Sans cette
+# section, un deploiement les eteindrait en silence — c'est deja arrive.
+[observability]
+enabled = true
+
+[vars]
+INGEST_URL = "https://salistar.com/api/mail/ingest"
+FORWARD_TO = "salistarcompany@gmail.com"

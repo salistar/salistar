@@ -1,4 +1,5 @@
 import { Mail, Github, MapPin, Send } from 'lucide-react';
+import { ContactForm } from './ContactForm';
 
 export function Contact() {
   return (
@@ -28,9 +29,16 @@ export function Contact() {
             </a>
           </div>
 
+          {/* Le mailto ci-dessus ne marche que si un client mail est configure
+              — sur mobile et en navigation privee, c'est souvent un clic dans
+              le vide. Le formulaire, lui, aboutit toujours. */}
+          <div className="mb-10">
+            <ContactForm site="salistar.com" />
+          </div>
+
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-[#97a0b4]">
             <span className="inline-flex items-center gap-2">
-              <Mail size={14} /> salistarcompany@gmail.com
+              <Mail size={14} /> contact@salistar.com
             </span>
             <span className="inline-flex items-center gap-2">
               <MapPin size={14} /> Morocco · Open to remote
