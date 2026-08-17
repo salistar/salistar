@@ -116,16 +116,44 @@ jobs:
       CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
       CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
     steps:
+      # Le site est DEJA deploye et verifie quand ce job tourne : un cache non
+      # purge se resorbe tout seul en quelques minutes. Faire echouer le
+      # workflow entier pour ca revenait a laisser un rouge permanent — et un
+      # workflow toujours rouge est un workflow que plus personne ne regarde,
+      # y compris le jour ou c'est le deploiement qui casse.
+      #
+      # On n'ETOUFFE pas l'erreur pour autant : le corps de la reponse
+      # Cloudflare est affiche, avec la marche a suivre. Visible sans etre bloquant.
       - name: Purge cache
+        continue-on-error: true
         run: |
           if [ -z "$CF_ZONE_ID" ] || [ -z "$CF_API_TOKEN" ]; then
-            echo "Cloudflare secrets missing, skipping cache purge"
+            echo "::warning::CF_ZONE_ID ou CF_API_TOKEN absent — purge ignoree."
             exit 0
           fi
-          curl -fsS -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+
+          reponse=$(curl -sS -w '\n%{http_code}' -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
             -H "Authorization: Bearer ${CF_API_TOKEN}" \
             -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}'
+            --data '{"purge_everything":true}')
+
+          code=$(echo "$reponse" | tail -1)
+          corps=$(echo "$reponse" | sed '$d')
+
+          if [ "$code" = "200" ]; then
+            echo "Cache purge."
+            exit 0
+          fi
+
+          echo "::warning::Purge refusee par Cloudflare (HTTP $code). Le deploiement, lui, a reussi."
+          echo "Reponse : $corps"
+          echo ""
+          echo "En HTTP 401/403, le jeton CF_API_TOKEN (cree le 17/05/2026) est"
+          echo "expire, revoque, ou sans la permission « Cache Purge » sur cette"
+          echo "zone. Le regenerer dans Cloudflare > My Profile > API Tokens,"
+          echo "puis : gh secret set CF_API_TOKEN --repo salistar/salistar"
+          exit 1
 
   health-check:
     name: Verify deployment
